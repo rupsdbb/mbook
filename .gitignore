@@ -1,0 +1,17 @@
+# Work data stays on this PC and is never published:
+# bills, workbooks, your SOR rates, site templates and real drawings.
+*.xlsm
+*.xlsx
+*.xls
+*.csv
+*.boq
+*.pdf
+!drawings/STD.DRG.*.pdf
+examples/
+dist/
+data/sor.js
+templates/*.boqt
+!templates/sample-*.boqt
+drawings/*
+!drawings/README.txt
+!drawings/STD.DRG.*.pdf

@@ -1,0 +1,13 @@
+{
+ "format": "boq-template",
+ "version": 1,
+ "name": "Sample foundation",
+ "lines": [
+  { "serviceNo": "9900001", "shortText": "EXCAVATION . ORDINARY SOIL UPTO 1.5 M", "description": "Foundation pits", "no": "4", "l": "1.5", "b": "1.5", "hd": "1.2", "unit": "M3", "qty": 10.8 },
+  { "serviceNo": "9900002", "shortText": "FLOOR . PCC 1:4:8 MIX", "description": "Levelling course", "no": "4", "l": "1.5", "b": "1.5", "hd": "0.1", "unit": "M3", "qty": 0.9 },
+  { "serviceNo": "9900003", "shortText": "FOUNDN . RCC 1:1.5:3 MIX", "description": "Footings", "no": "4", "l": "1.2", "b": "1.2", "hd": "0.45", "unit": "M3", "qty": 2.592 },
+  { "serviceNo": "9900004", "shortText": "BLDG . HYSD STEEL BARS", "description": "Footing mesh 12 mm", "no": "4*2*9", "l": "1.1", "b": "", "hd": "0.888", "hdSection": "ISRO 12", "unit": "KG", "qty": 70.330 },
+  { "serviceNo": "9900008", "shortText": "STEEL . STRUCTURAL SECTIONS", "description": "Column base angles", "no": "4", "l": "2*(0.6+0.6)", "b": "", "hd": "5.91", "hdSection": "ISA 65X65X6", "unit": "KG", "qty": 56.736 },
+  { "serviceNo": "9900016", "shortText": "MISC . SITE CLEARANCE", "description": "Before setting out", "no": "1", "l": "", "b": "", "hd": "", "unit": "LS", "qty": 1 }
+ ]
+}

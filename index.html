@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MBook — BOQ Measurement</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header>
+  <h1 class="brand"><span id="appName">MBook</span><span class="ver" id="appVer"></span></h1>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" id="tabSheet" role="tab" aria-selected="true">Measurement</button>
+    <button class="tab" id="tabReport" role="tab" aria-selected="false">Report</button>
+  </nav>
+  <label class="field">Project <input id="projName" placeholder="Project / work name"></label>
+  <label class="field" id="stateField" hidden title="Each State has its own SOR; rates for this State (and rates not tied to a State) are used.">State <select id="projState"></select></label>
+  <label class="field" title="SOR rates valid on this date are used. Leave blank to use the newest rates.">Rates as on <input type="date" id="rateDate"></label>
+  <label class="field">Discount % <input id="discount" inputmode="decimal" placeholder="0"></label>
+  <div class="group">
+    <button id="btnNew" title="Start a new project">New</button>
+    <button id="btnOpen" title="Open a .boq project file">Open…</button>
+    <button id="btnSave" title="Save project (Ctrl+S)">Save</button>
+    <button id="btnExport" title="Export the sheet and report as PDF, Excel or an HTML page">Export…</button>
+  </div>
+  <div class="sep sheet-only"></div>
+  <div class="group sheet-only">
+    <button id="btnImportTpl" title="Add lines from a .boqt template">Import template…</button>
+    <button id="btnExportTpl" title="Save checked lines (or all) as a .boqt template">Export template…</button>
+  </div>
+  <div class="sep sheet-only"></div>
+  <div class="group sheet-only">
+    <button id="btnAdd" title="Add a row at the end (Enter on the last row also adds one)">+ Row</button>
+    <button id="btnInsert" title="Insert a row above the current row">Insert</button>
+    <button id="btnDup" title="Duplicate checked rows (or current row)">Duplicate</button>
+    <button id="btnUp" title="Move checked rows (or current row) up">↑</button>
+    <button id="btnDown" title="Move checked rows (or current row) down">↓</button>
+    <button id="btnDel" title="Delete checked rows (or current row). Delete key works too; Ctrl+Z undoes">Delete</button>
+    <button id="btnClear" class="danger" title="Delete every row in the sheet">Clear sheet</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="menu">
+    <button id="btnData">Data ▾</button>
+    <div class="menu-pop" id="menuData">
+      <button data-act="sor-csv">Replace SOR from CSV…</button>
+      <button data-act="sor-add">Add SOR rates from CSV (old or new period)…</button>
+      <button data-act="bis-csv">Replace BIS from CSV…</button>
+      <button data-act="restore">Restore built-in SOR &amp; BIS (data/sor.js, or the sample)</button>
+      <button data-act="drawings">Drawings folder…</button>
+      <button data-act="confirm-del" id="menuConfirmDel">Ask before deleting rows: On</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <table id="grid">
+    <thead>
+      <tr>
+        <th class="c-sel"><input type="checkbox" id="chkAll" title="Check all"></th>
+        <th class="c-line num">#</th>
+        <th class="c-flag" title="Warnings"></th>
+        <th class="c-code">Service No</th>
+        <th class="c-short">Short Text</th>
+        <th class="c-desc">Description</th>
+        <th class="c-dim num">No</th>
+        <th class="c-dim num">L</th>
+        <th class="c-dim num">B</th>
+        <th class="c-hd num">H/D</th>
+        <th class="c-qty num">Qty</th>
+        <th class="c-unit">Unit</th>
+        <th class="c-price num">Price</th>
+        <th class="c-amt num">Amount</th>
+        <th class="c-po">PO Item</th>
+        <th class="c-asset">Asset</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="13" style="text-align:right">Total</td>
+        <td class="num" id="grandTotal">0.00</td>
+        <td colspan="2"></td>
+      </tr>
+    </tfoot>
+  </table>
+  <div class="empty" id="empty" hidden>
+    <p><b>No lines yet.</b></p>
+    <p>Click <b>+ Row</b> to start measuring, or <b>Import template…</b> to bring in a standard BOQ.</p>
+  </div>
+</main>
+
+<section id="report" hidden>
+  <div class="rep-bar">
+    <label class="field">Group by
+      <select id="repGroup">
+        <option value="asset">Asset</option>
+        <option value="poItem">PO Item</option>
+        <option value="poItem>asset">PO Item › Asset</option>
+        <option value="asset>poItem">Asset › PO Item</option>
+        <option value="">No grouping (abstract of all lines)</option>
+      </select>
+    </label>
+    <label class="field"><input type="checkbox" id="repHideZero" checked> Hide items that net to zero</label>
+    <label class="field"><input type="checkbox" id="repDetail"> Show measurement lines</label>
+    <span class="spacer"></span>
+    <button id="repCsv" title="Download this report as a CSV file for Excel">Export CSV</button>
+    <button id="repPrint">Print</button>
+  </div>
+  <div class="rep-wrap">
+    <div class="rep-title" id="repTitle"></div>
+    <table id="repTable"></table>
+    <div class="empty" id="repEmpty" hidden><p>No lines with a Service No to report.</p></div>
+  </div>
+</section>
+
+<footer>
+  <span><b id="stLines">0</b> lines</span>
+  <span class="warn" id="stFlagsWrap"><b id="stFlags">0</b> need review</span>
+  <span class="datainfo" id="stData"></span>
+  <span id="stSaved"></span>
+  <span class="spacer"></span>
+  <span class="keys sheet-only">No/L/B/H/D take + − × ÷ ^ ( ) sqrt() pi · Service No: type a code or words to search · H/D: type <kbd>IS…</kbd> for a steel section · <kbd>Ctrl</kbd>+<kbd>I</kbd> full SOR text · <kbd>Enter</kbd>/<kbd>↑</kbd><kbd>↓</kbd> move</span>
+  <a class="gh mail" id="mailLink" href="#" title="Email the author" aria-label="Email the author"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="currentColor"/><rect x="3.6" y="5.2" width="8.8" height="5.8" rx="0.9" fill="none" stroke="var(--surface)" stroke-width="1.1"/><path d="M3.9 5.7 8 8.7l4.1-3" fill="none" stroke="var(--surface)" stroke-width="1.1" stroke-linejoin="round"/></svg></a>
+  <a class="gh" id="ghLink" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+</footer>
+
+<!-- Service search -->
+<dialog id="dlgService">
+  <div class="dlg-head">Select service <span class="sub" id="svcCount"></span></div>
+  <div class="dlg-body">
+    <input class="pick-search" id="svcSearch" placeholder="Search short text or service no — all words must match" autocomplete="off">
+    <div class="pick-list" id="svcList"></div>
+  </div>
+  <div class="dlg-foot">
+    <span class="hint"><kbd>↑</kbd><kbd>↓</kbd> choose · <kbd>Enter</kbd> select · <kbd>Esc</kbd> cancel · double-click selects</span>
+    <button data-close>Cancel</button>
+    <button class="primary" id="svcOk">Select</button>
+  </div>
+</dialog>
+
+<!-- BIS picker -->
+<dialog id="dlgBis">
+  <div class="dlg-head">Steel section weight <span class="sub" id="bisCount"></span></div>
+  <div class="dlg-body">
+    <input class="pick-search" id="bisSearch" placeholder="e.g. ISA 65, ISMB 200, ISRO 16" autocomplete="off">
+    <div class="pick-list" id="bisList"></div>
+  </div>
+  <div class="dlg-foot">
+    <span class="hint">Puts the kg/m weight into H/D</span>
+    <button data-close>Cancel</button>
+    <button class="primary" id="bisOk">Select</button>
+  </div>
+</dialog>
+
+<!-- SOR long text -->
+<dialog id="dlgLong">
+  <div class="dlg-head" id="longHead"></div>
+  <div class="dlg-body">
+    <dl class="kv" id="longKv"></dl>
+    <pre id="longText"></pre>
+  </div>
+  <div class="dlg-foot"><button class="primary" data-close autofocus>Close</button></div>
+</dialog>
+
+<!-- Template import -->
+<dialog id="dlgTpl">
+  <form method="dialog">
+    <div class="dlg-head">Import template <span class="sub" id="tplName"></span></div>
+    <div class="dlg-body">
+      <div class="form">
+        <label for="tplPo">PO Item</label><input id="tplPo" list="poList" autocomplete="off">
+        <label for="tplAsset">Asset</label><input id="tplAsset" list="assetList" autocomplete="off">
+        <label for="tplWhere">Insert</label>
+        <select id="tplWhere">
+          <option value="end">At the end</option>
+          <option value="after">After the current row</option>
+        </select>
+      </div>
+      <p class="note" id="tplNote"></p>
+    </div>
+    <div class="dlg-foot">
+      <button value="cancel">Cancel</button>
+      <button class="primary" value="ok" id="tplOk">Import</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Template export -->
+<dialog id="dlgTplOut">
+  <form method="dialog">
+    <div class="dlg-head">Export template</div>
+    <div class="dlg-body">
+      <div class="form">
+        <label for="tplOutName">Template name</label><input id="tplOutName" placeholder="e.g. Canopy Foundation" required>
+      </div>
+      <p class="note" id="tplOutNote"></p>
+    </div>
+    <div class="dlg-foot">
+      <button value="cancel" formnovalidate>Cancel</button>
+      <button class="primary" value="ok">Export</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Flag details -->
+<dialog id="dlgFlag">
+  <div class="dlg-head" id="flagHead"></div>
+  <div class="dlg-body"><ul id="flagList"></ul><p class="note" id="flagNote"></p></div>
+  <div class="dlg-foot">
+    <button data-close>Close</button>
+    <button class="primary" id="flagAccept">Mark reviewed</button>
+  </div>
+</dialog>
+
+<!-- Delete confirmation -->
+<dialog id="dlgDelete">
+  <form method="dialog">
+    <div class="dlg-head" id="delText">Delete?</div>
+    <div class="dlg-body">
+      <label class="dontask"><input type="checkbox" id="delDontAsk"> Don't ask again (Undo / Ctrl+Z can still bring rows back)</label>
+    </div>
+    <div class="dlg-foot">
+      <button value="cancel">Cancel</button>
+      <button class="primary" value="ok" autofocus>Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Export -->
+<dialog id="dlgExport">
+  <form method="dialog">
+    <div class="dlg-head">Export</div>
+    <div class="dlg-body">
+      <div class="form">
+        <span>Format</span>
+        <div class="choices">
+          <label><input type="radio" name="xfmt" value="pdf" checked> PDF</label>
+          <label><input type="radio" name="xfmt" value="xlsx"> Excel (.xlsx)</label>
+          <label><input type="radio" name="xfmt" value="html"> HTML page</label>
+        </div>
+        <span>Include</span>
+        <div class="choices col">
+          <label><input type="checkbox" id="xSheet" checked> Measurement sheet</label>
+          <label><input type="checkbox" id="xReport" checked> Report, grouped by <select id="xGroup"></select></label>
+          <label class="sub"><input type="checkbox" id="xHideZero" checked> Hide items that net to zero</label>
+          <label class="sub"><input type="checkbox" id="xDetail"> Show measurement lines under each item</label>
+        </div>
+      </div>
+      <p class="note">Excel keeps working formulas (Qty, Amount and any arithmetic in No / L / B / H/D). The HTML page is static — no scripts.</p>
+    </div>
+    <div class="dlg-foot">
+      <button value="cancel" formnovalidate>Cancel</button>
+      <button class="primary" value="ok">Export</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="poList"></datalist>
+<datalist id="assetList"></datalist>
+<input type="file" id="fileInput" hidden>
+<div id="hoverCard" role="tooltip"></div>
+<div id="toast"></div>
+
+<!-- data/sor.js is your own SOR (kept out of the repository); the sample is used when it is absent -->
+<script src="data/sor.sample.js"></script>
+<script src="data/sor.js"></script>
+<script src="data/bis.js"></script>
+<script src="js/app.js"></script>
+<script src="js/data.js"></script>
+<script src="js/model.js"></script>
+<script src="js/sheet.js"></script>
+<script src="js/popups.js"></script>
+<script src="js/files.js"></script>
+<script src="js/report.js"></script>
+<script src="js/export.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
