@@ -355,8 +355,9 @@ function exportPdf(o) {
 /* ---------- Excel (.xlsx) ---------- */
 // Cells: null | number | string | { v, f (formula), s (style), t: 's' for text }
 // Styles: 0 normal, 1 bold, 2 #,##0.00, 3 #,##0.000, 4 bold #,##0.00, 5 title,
-// 6 header, 7 group row, 8 grey detail, 9 grey detail #,##0.000, 10 general number
-const XS = { normal: 0, bold: 1, money: 2, qty3: 3, boldMoney: 4, title: 5, head: 6, group: 7, detail: 8, detailQty: 9, gen: 10 };
+// 6 header, 7 group row, 8 grey detail, 9 grey detail #,##0.000, 10 general number,
+// 11 greyed header, 12 wrapped text
+const XS = { normal: 0, bold: 1, money: 2, qty3: 3, boldMoney: 4, title: 5, head: 6, group: 7, detail: 8, detailQty: 9, gen: 10, headMuted: 11, wrap: 12 };
 const qtyStyle = uf => uf.min === 0 ? XS.gen : uf.dp === 2 ? XS.money : XS.qty3;
 const colName = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - m - 1) / 26; } return s; };
 const xmlEsc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
@@ -396,7 +397,7 @@ const STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
   '<fill><patternFill patternType="solid"><fgColor rgb="FFD9D9D9"/></patternFill></fill>' +
   '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill></fills>' +
   '<borders count="2"><border/><border><bottom style="thin"><color rgb="FF999999"/></bottom></border></borders>' +
-  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="11">' +
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="13">' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
   '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
   '<xf numFmtId="4" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
@@ -408,6 +409,8 @@ const STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
   '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
   '<xf numFmtId="164" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+  '<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>' +
+  '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>' +
   '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 
 function exportXlsx(o) {
@@ -464,6 +467,10 @@ function exportXlsx(o) {
     }
     sheets.push({ name: 'Report', xml: sheetXml({ cols: [5, 11, 48, 7, 12, 12, 15], rows, merges, freeze: 5 }) });
   }
+  return xlsxBlob(sheets);
+}
+// A workbook from [{ name, xml }] sheets
+function xlsxBlob(sheets) {
   const files = [
     ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +

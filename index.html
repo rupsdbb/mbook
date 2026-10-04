@@ -31,6 +31,7 @@
   <div class="group sheet-only">
     <button id="btnImportTpl" title="Add entries from a .boqt template">Import template…</button>
     <button id="btnExportTpl" title="Save checked entries (or all) as a .boqt template">Export template…</button>
+    <button id="btnImportXl" title="Add entries from an Excel sheet; a blank sheet to paste into is available here">Import Excel…</button>
   </div>
   <div class="sep sheet-only"></div>
   <div class="group sheet-only">
@@ -91,7 +92,7 @@
   </table>
   <div class="empty" id="empty" hidden>
     <p><b>No entries yet.</b></p>
-    <p>Click <b>+ Row</b> to start measuring, or <b>Import template…</b> to bring in a standard BOQ.</p>
+    <p>Click <b>+ Row</b> to start measuring, <b>Import template…</b> to bring in a standard BOQ, or <b>Import Excel…</b> for measurements kept in Excel.</p>
   </div>
 </main>
 
@@ -191,6 +192,38 @@
   </form>
 </dialog>
 
+<!-- Measurements from Excel -->
+<dialog id="dlgXl">
+  <form method="dialog">
+    <div class="dlg-head">Import measurements from Excel</div>
+    <div class="dlg-body">
+      <p class="note first">Paste your measurements into the blank sheet (its columns are in the same order as this
+        sheet's, so a block copied from an MES sheet fits), save it, and choose it here. Any workbook with the same
+        headings works too.</p>
+      <div class="xl-steps">
+        <button type="button" id="xlBlank">Download blank sheet</button>
+        <button type="button" id="xlChoose" autofocus>Choose file…</button>
+        <span id="xlFile" class="sub"></span>
+      </div>
+      <div class="form" id="xlForm" hidden>
+        <label for="xlSheet" id="xlSheetLabel">Sheet</label><select id="xlSheet"></select>
+        <label for="xlPo">PO Item</label><input id="xlPo" list="poList" autocomplete="off" placeholder="for entries without one">
+        <label for="xlAsset">Asset</label><input id="xlAsset" list="assetList" autocomplete="off" placeholder="for entries without one">
+        <label for="xlWhere">Insert</label>
+        <select id="xlWhere">
+          <option value="end">At the end</option>
+          <option value="after">After the current row</option>
+        </select>
+      </div>
+      <p class="note" id="xlNote"></p>
+    </div>
+    <div class="dlg-foot">
+      <button value="cancel">Cancel</button>
+      <button class="primary" value="ok" id="xlOk" disabled>Import</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Template export -->
 <dialog id="dlgTplOut">
   <form method="dialog">
@@ -278,10 +311,8 @@
 <div id="toast"></div>
 
 <!-- SOR, in order of preference: one imported in the browser, your own data/sor.js
-     (kept out of this repository), the shared SOR published at rupsdbb.github.io/mbook-data,
-     then the sample. A file that isn't there (or no internet) is simply skipped. -->
+     (kept out of this repository), then the sample. A file that isn't there is skipped. -->
 <script src="data/sor.sample.js"></script>
-<script src="https://rupsdbb.github.io/mbook-data/sor.js"></script>
 <script src="data/sor.js"></script>
 <script src="data/bis.js"></script>
 <script src="js/app.js"></script>
@@ -293,6 +324,7 @@
 <script src="js/files.js"></script>
 <script src="js/report.js"></script>
 <script src="js/export.js"></script>
+<script src="js/import.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

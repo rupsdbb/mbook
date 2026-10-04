@@ -6,13 +6,7 @@ and data/bis.js. The workbook may be the full MES workbook or just an SOR
 master such as "SOR 2025-26.xlsx" (columns: Service No, Short Text, Rate, Unit,
 Valid From, Valid To, Long Text, State).
 
-Usage: python3 tools/extract_data.py "path/to/workbook.xlsm" [--state "Bihar"]
-       python3 tools/extract_data.py "path/to/workbook.xlsm" --shared DIR \
-               [--drawings URL] [--label "SOR 2025-26"]
-
---shared writes DIR/sor.js for publishing online (the mbook-data repository):
-the app loads it from https://rupsdbb.github.io/mbook-data/sor.js, and its
-drawing links open from --drawings (a web folder ending in /).
+Usage: python3 tools/extract_data.py "path/to/workbook.xlsm" [--state MP] [--label "SOR 2025-26"]
 
 Each State publishes its own SOR. A State column (H) in the SOR sheet tags
 each rate with a code of 2-4 letters (MP, CG, or MPCG for an SOR serving both);
@@ -98,10 +92,10 @@ def main():
     state = ""
     if "--state" in args:
         i = args.index("--state")
-        state = args[i + 1] if i + 1 < len(args) else sys.exit("--state needs a name")
+        state = args[i + 1] if i + 1 < len(args) else sys.exit("--state needs a code")
         del args[i:i + 2]
     opts = {}
-    for flag in ("--shared", "--drawings", "--label"):
+    for flag in ("--label",):
         if flag in args:
             i = args.index(flag)
             if i + 1 >= len(args):
@@ -113,15 +107,6 @@ def main():
     src = args[0]
     wb = openpyxl.load_workbook(src, data_only=True, read_only=True)
     sor = extract_sor(wb["SOR"], state)
-    if "--shared" in opts:
-        out = os.path.abspath(os.path.expanduser(opts["--shared"]))
-        os.makedirs(out, exist_ok=True)
-        data = {"source": opts.get("--label", os.path.basename(src)), "items": sor}
-        if "--drawings" in opts:
-            data["drawings"] = opts["--drawings"]
-        write_js(os.path.join(out, "sor.js"), "SHARED_SOR", data, data["source"])
-        print(f"Shared SOR: {len(sor)} items -> {os.path.join(out, 'sor.js')}")
-        return
     name = os.path.basename(src)
     os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
     write_js(os.path.join(ROOT, "data", "sor.js"), "DEFAULT_SOR",

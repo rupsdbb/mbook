@@ -281,7 +281,7 @@ $('menuData').addEventListener('click', async e => {
     return toast(askBeforeDelete ? 'Row deletes will ask first' : 'Rows delete straight away (Undo is still available)');
   }
   if (act === 'drawings') {
-    const folder = prompt('Folder holding the drawings: relative to this page (drawings/), a full path (D:\\Drawings) or a web address.\n' +
+    const folder = prompt('Folder holding the drawings: relative to this page (drawings/), a full path (D:\\Drawings or /home/me/drawings) or a web address.\n' +
       'A drawing number such as STD.DRG.101 opens <folder>STD.DRG.101' + drawingCfg.ext + ' — "/" in a number becomes "-".', drawingCfg.folder);
     if (folder === null) return;
     const ext = prompt('File extension of the drawings:', drawingCfg.ext);

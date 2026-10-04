@@ -63,9 +63,8 @@ setAskBeforeDelete(askBeforeDelete);
 const repPrefs = store.get('boq.report');
 if (repPrefs) { $('repGroup').value = repPrefs.g ?? 'asset'; $('repHideZero').checked = !!repPrefs.z; $('repDetail').checked = !!repPrefs.d; }
 loadRefData();
-// Drawings open from the folder the SOR names (the shared SOR points to its
-// online drawings), unless the user has chosen one under Data ▸ Drawings folder
-drawingCfg = store.get(KEY_DRG) || { ...drawingCfg, folder: SOR.drawings || drawingCfg.folder };
+// Drawings open from the folder chosen under Data ▸ Drawings folder, if any
+drawingCfg = store.get(KEY_DRG) || drawingCfg;
 refreshDataInfo();
 const saved = store.get(KEY_PROJECT);
 if (saved) { try { loadProject(saved); } catch { renderAll(); } } else renderAll();

@@ -18,3 +18,6 @@ drawings/*
 
 # Python cache
 __pycache__/
+
+# LibreOffice lock files (left while a workbook is open)
+.~lock.*#

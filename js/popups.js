@@ -178,11 +178,13 @@ const DRG_ID = String.raw`[A-Z][A-Z0-9]*(?:\s?&\s?[A-Z0-9]+)?(?:[./-][A-Z0-9&]+)
 const DRG_RX = new RegExp(String.raw`((?:drg|drawing)s?\.?\s*(?:no\.?|number)?\s*[.:]?\s*)(${DRG_ID})(?:(\s*\()(${DRG_ID})\))?`, 'gi');
 let drawingCfg = { folder: 'drawings/', ext: '.pdf' };
 const drawingHref = id => drawingCfg.folder + encodeURIComponent(id.replace(/[\/\\:*?"<>|]/g, '-') + drawingCfg.ext);
-// "D:\Drawings" or "\\server\share" → a file:/// address the browser can open
+// "D:\Drawings", "\\server\share" or "/home/me/drawings" → a file:/// address
+// the browser can open
 function folderUrl(f) {
   f = f.trim();
   if (!f) return '';
   if (/^[A-Za-z]:[\\/]/.test(f)) f = 'file:///' + f.replace(/\\/g, '/');
+  else if (/^\/(?!\/)/.test(f)) f = 'file://' + f;
   else if (/^\\\\/.test(f)) f = 'file:' + f.replace(/\\/g, '/');
   return /\/$/.test(f) ? f : f + '/';
 }
@@ -199,6 +201,15 @@ function longTextHtml(text) {
   }
   return out + esc(text.slice(last));
 }
+// A page served from the web may not open files on this computer: browsers
+// silently ignore such links, so say why and copy the address instead
+document.addEventListener('click', e => {
+  const a = e.target.closest('a.drg');
+  if (!a || location.protocol === 'file:' || !a.href.startsWith('file:')) return;
+  e.preventDefault();
+  navigator.clipboard?.writeText(a.href).catch(() => {});
+  toast('Browsers don\'t let a web page open files on your computer. The drawing\'s address is copied: paste it into a new tab, or use MBook from a downloaded copy.');
+});
 function drgLink(raw) {
   // A word run on after the number ("Q-119filling") stays plain text
   const t = /\d([A-Za-z]{2,})$/.exec(raw);
@@ -301,6 +312,16 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     undoDelete();
   }
+});
+// Enter in a dialog's text box confirms it. Left to the browser, it would press
+// the first button in the form, which is Cancel.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented) return;
+  const el = e.target, form = el.closest?.('dialog form[method="dialog"]');
+  if (!form || el.tagName !== 'INPUT' || ['checkbox', 'radio', 'button', 'submit'].includes(el.type)) return;
+  e.preventDefault();
+  const ok = form.querySelector('.primary');
+  if (ok && !ok.disabled) ok.click();
 });
 const isTyping = el => el && (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' ||
   (el.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes(el.type)));

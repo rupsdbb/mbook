@@ -82,10 +82,6 @@ def main():
 
     def script(m):
         src = m.group(1)
-        if src.startswith(("http://", "https://")):
-            # the shared online SOR: not needed when your own is built in;
-            # otherwise kept, so the file uses it whenever it is online
-            return "" if has_sor else m.group(0)
         if src == "data/sor.sample.js" and has_sor:
             return ""  # the real SOR is built in; the sample is not needed
         if src == "data/sor.js" and not has_sor:
@@ -93,7 +89,7 @@ def main():
         return "<script>\n" + inline_js(read(src)) + "\n</script>"
 
     html, n = re.subn(r'<script src="([^"]+)"></script>', script, html)
-    if re.search(r'<script src="(?!https?://)', html) or 'href="css/' in html:
+    if '<script src="' in html or 'href="css/' in html:
         sys.exit("build: a file reference was left unresolved")
 
     stamp = (f"<script>window.BUILD = {{ date: '{built.isoformat()}', "

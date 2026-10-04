@@ -49,6 +49,7 @@ connection and no third-party libraries. Your data never leaves your computer.
 | **Steel weights** | Type a section such as `ISA 65` and pick its kg/m from the BIS tables |
 | **Rounding by unit** | Whole numbers for EA / NO / LS, 2 decimals for lengths and areas, 3 for volumes and weights; amounts to 2 |
 | **Templates** | Save and reuse standard BOQs; entries that no longer match the SOR are flagged for review |
+| **Import from Excel** | Paste measurements into a blank Excel sheet, or upload an existing measurement sheet, and bring them in as entries |
 | **Reports** | Quantities consolidated by Asset and/or PO Item, with subtotals and a grand total |
 | **Export** | PDF, Excel with live formulas, and plain HTML |
 | **Drawings** | Drawing numbers in the SOR text open the matching drawing file |
@@ -109,6 +110,25 @@ When you're ready, [load your own SOR](#using-your-own-sor).
 
 Entries without a valid rate are flagged in red.
 
+### Importing measurements from Excel
+
+**Import Excel…** brings in measurements kept in a spreadsheet.
+
+1. Click **Download blank sheet**. Its columns are in the same order as the
+   measurement sheet (# · Service No · Short Text · Description · No · L · B ·
+   H/D · Qty · Unit · Price · Amount · PO Item · Asset), so a block copied from
+   an existing measurement sheet pastes straight in.
+2. Paste from row 2 and save. Only Service No, Description, No, L, B, H/D,
+   PO Item and Asset are read; Short Text, Unit and Price come from the SOR.
+3. Click **Choose file…**, pick the workbook, and import.
+
+Any `.xlsx`, `.xlsm` or `.csv` with these headings works too, such as an
+existing MES sheet; MBook finds the heading row and the columns by name
+(Description may be headed *Details*, and H/D may be *D/H*). Arithmetic such as
+`=2*(0.52+0.42)` comes across as an expression, a BIS section name in H/D
+becomes its kg/m, and the import can be undone from the message that follows.
+Old `.xls` workbooks need saving as `.xlsx` first.
+
 ### Report
 
 The **Report** tab totals each service code by Asset, by PO Item, or by both,
@@ -132,11 +152,10 @@ project file you can back up, email or open on another computer.
 
 ## Using your own SOR
 
-The [online version](https://rupsdbb.github.io/mbook/) loads a shared SOR and
-its drawings from [mbook-data](https://github.com/rupsdbb/mbook-data)
-automatically. MBook picks the SOR in this order: one you imported in your
-browser, a `data/sor.js` next to the page, the shared SOR, and finally the
-built-in sample. To use your own rates instead:
+The [online version](https://rupsdbb.github.io/mbook/) comes with a small
+sample SOR. MBook picks the SOR in this order: one you imported in your
+browser, a `data/sor.js` next to the page, and finally the built-in sample.
+To use your own rates:
 
 **From a CSV file** — in Excel, save your SOR sheet as CSV, then in MBook use
 **Data ▸ Replace SOR from CSV…**. Use **Data ▸ Add SOR rates from CSV…** to add
@@ -177,8 +196,11 @@ Columns are matched by heading, or taken in this order if there is no heading ro
 Drawing numbers in the SOR text — for example *"as per std drg no STD.DRG.101"* —
 open `drawings/<number>.pdf`, with `/` written as `-`
 (`ABC/XY/02` opens `drawings/ABC-XY-02.pdf`).
-**Data ▸ Drawings folder…** points to another folder, such as `D:\Drawings`,
-or changes the file type.
+**Data ▸ Drawings folder…** points to another folder, such as `D:\Drawings`
+or `/home/me/drawings`, or changes the file type. Browsers don't let a page on
+the web open files on your computer, so for drawings on your own disk use a
+downloaded copy of MBook; the online version copies the drawing's address
+instead.
 
 </details>
 
@@ -188,6 +210,7 @@ or changes the file type.
 |---|---|
 | `.boq` | A project — measurement entries plus project name, State, rate date and discount |
 | `.boqt` | A template — a reusable set of entries. On import, MBook asks for the PO Item and Asset and takes descriptions, units and rates from the current SOR |
+| `.xlsx` | Measurements to import (**Import Excel…**); the blank sheet is available from the same dialog |
 
 <details>
 <summary><b>Template example</b></summary>

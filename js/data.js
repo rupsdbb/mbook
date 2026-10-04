@@ -23,7 +23,7 @@ let SOR = { source: '', items: [] }, sorMap = new Map();
 let BIS = { source: '', items: [] };
 
 function loadRefData() {
-  SOR = store.get(KEY_SOR) || window.DEFAULT_SOR || window.SHARED_SOR || window.SAMPLE_SOR || { source: '(none)', items: [] };
+  SOR = store.get(KEY_SOR) || window.DEFAULT_SOR || window.SAMPLE_SOR || { source: '(none)', items: [] };
   BIS = store.get(KEY_BIS) || window.DEFAULT_BIS || { source: '(none)', items: [] };
   indexRefData();
 }
