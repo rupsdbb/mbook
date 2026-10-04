@@ -13,6 +13,9 @@ and turn them into a BOQ — offline, in the browser, with nothing to install.
 ![Works offline](https://img.shields.io/badge/works-offline-success)
 ![Chrome | Edge](https://img.shields.io/badge/browser-Chrome%20%7C%20Edge-lightgrey)
 
+**[▶ Try it online](https://rupsdbb.github.io/mbook/)** &nbsp;·&nbsp;
+**[⬇ Download](https://github.com/rupsdbb/mbook/archive/refs/heads/main.zip)**
+
 [Features](#features) ·
 [Quick start](#quick-start) ·
 [Using MBook](#using-mbook) ·
@@ -53,11 +56,16 @@ connection and no third-party libraries. Your data never leaves your computer.
 
 ## Quick start
 
-1. **Download** — click **Code ▸ Download ZIP** above and unzip it.
-2. **Open** — double-click `index.html`; it opens in Chrome or Edge.
-3. **Try it** — MBook starts with a small sample SOR of made-up rates.
-   Click **+ Row**, type `excavation` under *Service No* and press <kbd>Enter</kbd>,
-   or use **Import template…** to load `templates/sample-foundation.boqt`.
+**Online** — open **[rupsdbb.github.io/mbook](https://rupsdbb.github.io/mbook/)**.
+It runs entirely in your browser; nothing you enter is sent anywhere.
+
+**On your computer** — [download the ZIP](https://github.com/rupsdbb/mbook/archive/refs/heads/main.zip),
+unzip it and double-click `index.html`. It works offline in Chrome or Edge.
+
+**Try it** — MBook starts with a small sample SOR of made-up rates. Click
+**+ Row**, type `excavation` under *Service No* and press <kbd>Enter</kbd>, or
+use **Import template…** to load
+[`sample-foundation.boqt`](https://github.com/rupsdbb/mbook/raw/main/templates/sample-foundation.boqt).
 
 When you're ready, [load your own SOR](#using-your-own-sor).
 
@@ -210,10 +218,9 @@ tools/         extract_data.py (workbook → data/*.js) · build.py (single-file
   includes `drawings/`.
 - **Work data stays out of git** — `.gitignore` excludes workbooks, `.boq`
   projects, CSV files, `data/sor.js` and `dist/`.
-- **Releasing** — bump `version` in `js/app.js`, add the release notes at the
-  top of `js/changelog.js` (shown in the app when the version is clicked), run
-  `tools/build.py` to regenerate [CHANGELOG.md](CHANGELOG.md), and tag the
-  commit (`git tag v1.0.1`).
+- **New version** — bump `version` in `js/app.js`, add its notes at the top of
+  `js/changelog.js` (shown in the app when the version is clicked), and run
+  `tools/build.py` to regenerate [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
