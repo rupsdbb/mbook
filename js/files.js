@@ -55,7 +55,7 @@ function loadProject(data) {
   project.name = asStr(data.name);
   project.discount = fmtDiscount(asStr(data.discount));
   project.date = /^\d{4}-\d{2}-\d{2}$/.test(data.date || '') ? data.date : '';
-  project.state = asStr(data.state).trim();
+  project.state = stateCode(asStr(data.state));
   pickCache = null;
   project.lines = data.lines.filter(l => l && typeof l === 'object').map(l => newLine({
     code: asStr(l.serviceNo).trim(), desc: asStr(l.description),
@@ -245,7 +245,7 @@ function sorFromCSV(rows) {
   items.hasState = col.state >= 0;
   return items;
 }
-const sorKey = it => `${it.code}|${it.from || ''}|${it.to || ''}|${String(it.state || '').trim().toUpperCase()}`;
+const sorKey = it => `${it.code}|${it.from || ''}|${it.to || ''}|${stateCodes(it.state).join('/').toUpperCase()}`;
 // SOR dates arrive as 2025-02-03, 03.02.2025 (SAP), 03-02-2025 or 03/02/2025 — day first.
 function normDate(v) {
   const s = String(v ?? '').trim();
@@ -304,11 +304,21 @@ $('menuData').addEventListener('click', async e => {
     if (!items.length) return alert('No SOR rows found. Expected columns: Service No, Short Text, Rate, Unit (and optionally Valid From, Valid To, Long Text, State).');
     if (!items.hasState) {
       // Each State has its own SOR: say which one this file is (blank = applies everywhere)
-      const st = prompt(`Which State is ${file.name} the SOR for?\nLeave blank if these rates apply in every State.`,
-        project.state || sorStates[0] || '');
-      if (st === null) return;
-      if (st.trim()) for (const it of items) it.state = st.trim();
+      let st = project.state || sorStates[0] || '';
+      for (;;) {
+        st = prompt(`Which State is ${file.name} the SOR for?\nGive its code of 2–4 letters (MP, CG, or MPCG for an SOR shared by both).\n` +
+          'Leave blank if these rates apply in every State.', st);
+        if (st === null) return;
+        st = stateCode(st);
+        if (!st || STATE_CODE.test(st)) break;
+        alert(`"${st}" isn't a State code. Use 2–4 letters, such as MP or MPCG.`);
+      }
+      if (st) for (const it of items) it.state = st;
     }
+    const badStates = [...new Set(items.map(it => stateCode(it.state)).filter(c => c && !STATE_CODE.test(c)))];
+    if (badStates.length)
+      return alert(`The State column must hold a code of 2–4 letters (such as MP, CG or MPCG), or be blank.\n` +
+        `${file.name} has: ${badStates.slice(0, 8).join(', ')}${badStates.length > 8 ? ' …' : ''}`);
     let next;
     if (act === 'sor-csv') {
       if (!confirm(`Replace the SOR with ${items.length} rates from ${file.name}?`)) return;

@@ -64,12 +64,12 @@ function flagsFor(line, c) {
   const out = [];
   if (line.code && !c.look) out.push({ level: 'err', kind: 'nosor', text: `Service No ${line.code} is not in the SOR.` });
   if (c.look && !c.sor) out.push({ level: 'err', kind: 'norate', text: `No SOR rate for ${line.code} ${rateContext()}. ` +
-    `Rates exist for: ${c.look.entries.map(e => (e.state ? e.state + ', ' : '') + fmtPeriod(e)).join('; ')}.` });
+    `Rates exist for: ${c.look.entries.map(e => (e.states.length ? e.states.join('/') + ', ' : '') + fmtPeriod(e)).join('; ')}.` });
   if (c.look?.outOfDate)
     out.push({ level: 'warn', kind: 'expired', text: `The SOR rate for ${line.code} ${validityNote(c.sor)}; with no rate date set, ` +
       'the latest rate on file is used. Set Rates as on to the date of the work.' });
-  if (c.sor?.state && !project.state)
-    out.push({ level: 'warn', kind: 'state', text: `Rate taken from the ${c.sor.state} SOR — choose the project's State to be sure.` });
+  if (c.sor?.states.length && !project.state)
+    out.push({ level: 'warn', kind: 'state', text: `Rate taken from the ${c.sor.states.join('/')} SOR — choose the project's State to be sure.` });
   if (c.err) out.push({ level: 'err', kind: 'dim', text: 'A dimension cannot be calculated — check No / L / B / H/D.' });
   const ref = line.ref;
   if (ref && c.info) {

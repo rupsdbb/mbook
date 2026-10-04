@@ -66,7 +66,7 @@ function itemText(it) {
 const groupingName = levels => levels.map(f => FIELD_LABEL[f]).join(' › ') || 'Service No (abstract)';
 function exportMeta() {
   return [
-    project.state ? `State: ${project.state}` : '',
+    project.state ? `State: ${stateName(project.state)}` : '',
     project.date ? `Rates as on ${fmtDate(project.date)}` : 'No rate date set',
     discountFrac() ? `Discount ${project.discount}%` : '',
     `SOR: ${SOR.source}`,

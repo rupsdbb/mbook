@@ -23,15 +23,26 @@ let SOR = { source: '', items: [] }, sorMap = new Map();
 let BIS = { source: '', items: [] };
 
 function loadRefData() {
-  SOR = store.get(KEY_SOR) || window.DEFAULT_SOR || window.SAMPLE_SOR || { source: '(none)', items: [] };
+  SOR = store.get(KEY_SOR) || window.DEFAULT_SOR || window.SHARED_SOR || window.SAMPLE_SOR || { source: '(none)', items: [] };
   BIS = store.get(KEY_BIS) || window.DEFAULT_BIS || { source: '(none)', items: [] };
   indexRefData();
 }
 // A Service No can have several SOR rates, each with its own validity period
-// (old and present SOR loaded together) and, optionally, its own State (each
-// State publishes its own SOR). sorMap: code -> entries, latest Valid From
-// first; sorStates: the States named in the SOR.
+// (old and present SOR loaded together) and, optionally, the State code of
+// the SOR it comes from. sorMap: code -> entries,
+// latest Valid From first; sorStates: the State codes named in the SOR.
 let sorStates = [];
+
+/* ---------- State codes ---------- */
+// An SOR is tagged with a code of 2–4 letters naming the State(s) it covers:
+// MP, CG, UP … or MPCG where one SOR serves both. Codes are matched exactly,
+// in capitals, without spaces.
+const STATE_CODE = /^[A-Z]{2,4}$/;
+const stateCode = v => String(v ?? '').toUpperCase().replace(/\s+/g, '');
+// a list with the cell's code, or empty for "all States"
+const stateCodes = v => { const c = stateCode(v); return c ? [c] : []; };
+const stateName = c => c;
+const statesText = codes => codes.length ? codes.join(', ') : 'All States';
 // SAP long texts escape characters as <(>&<)> — show them as plain "&".
 const unSap = t => String(t ?? '').replace(/<\(>(.*?)<\)>/g, '$1');
 function indexRefData() {
@@ -39,7 +50,8 @@ function indexRefData() {
   const states = new Map();
   for (const it of SOR.items) {
     it.state = String(it.state ?? '').trim();
-    if (it.state) states.set(it.state.toUpperCase(), it.state);
+    it.states = stateCodes(it.state);
+    for (const c of it.states) states.set(c.toUpperCase(), c);
     it.short = unSap(it.short);
     it.long = unSap(it.long);
     const k = String(it.code);
@@ -48,14 +60,16 @@ function indexRefData() {
   }
   for (const list of sorMap.values()) list.sort((a, b) => (b.from || '').localeCompare(a.from || ''));
   sorStates = [...states.values()].sort((a, b) => a.localeCompare(b));
+  if (project.state) project.state = stateCode(project.state);
   BIS.items.forEach(it => { it.key = normSection(it.name); });
   pickCache = null;
 }
 const inPeriod = (e, d) => (!e.from || e.from <= d) && (!e.to || d <= e.to);
 const sameState = (a, b) => String(a || '').trim().toUpperCase() === String(b || '').trim().toUpperCase();
-// A rate tagged with a State applies only there; an untagged rate applies
+const forState = (e, st) => e.states.some(c => sameState(c, st));
+// A rate tagged with States applies only there; an untagged rate applies
 // everywhere. With no project State chosen, every rate is a candidate.
-const fitsState = e => !e.state || !project.state || sameState(e.state, project.state);
+const fitsState = e => !e.states.length || !project.state || forState(e, project.state);
 // Today as YYYY-MM-DD in local time (toISOString alone would give UTC)
 const todayISO = () => { const t = new Date(); return new Date(t - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 // The SOR entry that prices a code: among the rates for the project's State,
@@ -69,7 +83,7 @@ function sorLookup(code) {
   const entries = code ? sorMap.get(String(code)) : null;
   if (!entries) return null;
   const cands = entries.filter(fitsState);
-  const pick = list => (project.state ? list.find(e => sameState(e.state, project.state)) : list.find(e => !e.state))
+  const pick = list => (project.state ? list.find(e => forState(e, project.state)) : list.find(e => !e.states.length))
     || list[0] || null;
   const on = d => cands.filter(e => inPeriod(e, d));
   let entry, outOfDate = false;
@@ -86,7 +100,7 @@ function validityNote(e) {
 }
 // "for Bihar valid on 15-01-2025", for messages about missing rates
 function rateContext() {
-  return [project.state ? `for ${project.state}` : '', project.date ? `valid on ${fmtDate(project.date)}` : '']
+  return [project.state ? `for ${stateName(project.state)}` : '', project.date ? `valid on ${fmtDate(project.date)}` : '']
     .filter(Boolean).join(' ') || 'in the SOR';
 }
 let pickCache = null;

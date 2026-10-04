@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 # MBook — Copyright (C) 2026 rupsdbb
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Extract the SOR and BIS sheets from a workbook into data/sor.js and data/bis.js.
+"""Extract the SOR (and BIS, if present) sheets from a workbook into data/sor.js
+and data/bis.js. The workbook may be the full MES workbook or just an SOR
+master such as "SOR 2025-26.xlsx" (columns: Service No, Short Text, Rate, Unit,
+Valid From, Valid To, Long Text, State).
 
 Usage: python3 tools/extract_data.py "path/to/workbook.xlsm" [--state "Bihar"]
+       python3 tools/extract_data.py "path/to/workbook.xlsm" --shared DIR \
+               [--drawings URL] [--label "SOR 2025-26"]
+
+--shared writes DIR/sor.js for publishing online (the mbook-data repository):
+the app loads it from https://rupsdbb.github.io/mbook-data/sor.js, and its
+drawing links open from --drawings (a web folder ending in /).
 
 Each State publishes its own SOR. A State column (H) in the SOR sheet tags
-each rate; --state tags every rate that has none. Untagged rates apply in
-every State.
+each rate with a code of 2-4 letters (MP, CG, or MPCG for an SOR serving both);
+--state tags every rate that has none. Untagged rates apply in every State.
 
 Needs openpyxl (pip install openpyxl). data/sor.js holds your own rates and is
 kept out of git (.gitignore); without it the app falls back to
@@ -16,6 +25,7 @@ data/sor.sample.js. The app can also load SOR/BIS from a CSV at runtime.
 import datetime
 import json
 import os
+import re
 import sys
 
 import openpyxl
@@ -53,8 +63,11 @@ def extract_sor(ws, default_state=""):
             "to": iso(vto),
             "long": str(long_text).strip(),
         })
-        state = str(state or default_state).strip()
+        state = re.sub(r"\s+", "", str(state or default_state)).upper()
         if state:
+            if not re.fullmatch(r"[A-Z]{2,4}", state):
+                sys.exit(f"SOR row for {items[-1]['code']}: State must be a code of 2-4 letters "
+                         f"(such as MP, CG or MPCG), not {state!r}")
             items[-1]["state"] = state
     return items
 
@@ -87,21 +100,42 @@ def main():
         i = args.index("--state")
         state = args[i + 1] if i + 1 < len(args) else sys.exit("--state needs a name")
         del args[i:i + 2]
+    opts = {}
+    for flag in ("--shared", "--drawings", "--label"):
+        if flag in args:
+            i = args.index(flag)
+            if i + 1 >= len(args):
+                sys.exit(f"{flag} needs a value")
+            opts[flag] = args[i + 1]
+            del args[i:i + 2]
     if len(args) != 1:
         sys.exit(__doc__)
     src = args[0]
     wb = openpyxl.load_workbook(src, data_only=True, read_only=True)
     sor = extract_sor(wb["SOR"], state)
-    bis = extract_bis(wb["BIS"])
+    if "--shared" in opts:
+        out = os.path.abspath(os.path.expanduser(opts["--shared"]))
+        os.makedirs(out, exist_ok=True)
+        data = {"source": opts.get("--label", os.path.basename(src)), "items": sor}
+        if "--drawings" in opts:
+            data["drawings"] = opts["--drawings"]
+        write_js(os.path.join(out, "sor.js"), "SHARED_SOR", data, data["source"])
+        print(f"Shared SOR: {len(sor)} items -> {os.path.join(out, 'sor.js')}")
+        return
     name = os.path.basename(src)
     os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
     write_js(os.path.join(ROOT, "data", "sor.js"), "DEFAULT_SOR",
-             {"source": name, "items": sor}, name)
+             {"source": opts.get("--label", name), "items": sor}, name)
+    print(f"SOR: {len(sor)} items")
+    # A workbook with a BIS sheet also refreshes the steel tables; an SOR-only
+    # file (such as the clean SOR master) leaves data/bis.js as it is.
     # BIS weights are standard published data, so they are labelled as such
     # rather than with the workbook's name (bis.js is published; sor.js is not)
-    write_js(os.path.join(ROOT, "data", "bis.js"), "DEFAULT_BIS",
-             {"source": "BIS steel section tables", "items": bis}, "the BIS handbook tables")
-    print(f"SOR: {len(sor)} items, BIS: {len(bis)} sections")
+    if "BIS" in wb.sheetnames:
+        bis = extract_bis(wb["BIS"])
+        write_js(os.path.join(ROOT, "data", "bis.js"), "DEFAULT_BIS",
+                 {"source": "BIS steel section tables", "items": bis}, "the BIS handbook tables")
+        print(f"BIS: {len(bis)} sections")
 
 
 if __name__ == "__main__":

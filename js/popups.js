@@ -161,11 +161,11 @@ function ratesHtml(look) {
   const status = !look.entry ? `No rate ${rateContext()}`
     : (d ? `Valid on ${fmtDate(d)}`
        : look.outOfDate ? `Rate ${validityNote(look.entry)} — latest rate on file used (no rate date set)`
-       : 'Valid today (no rate date set)') + (project.state ? ` · ${project.state}` : '');
-  const anyState = look.entries.some(e => e.state);
+       : 'Valid today (no rate date set)') + (project.state ? ` · ${stateName(project.state)}` : '');
+  const anyState = look.entries.some(e => e.states.length);
   const rows = look.entries.map(e => {
     const used = e === look.entry;
-    return `<tr class="${used ? 'used' : ''}">${anyState ? `<td>${esc(e.state || 'All States')}</td>` : ''}` +
+    return `<tr class="${used ? 'used' : ''}">${anyState ? `<td>${esc(statesText(e.states))}</td>` : ''}` +
       `<td>${esc(fmtPeriod(e))}</td><td class="r">${fmtMoney(e.rate)}</td><td>${used ? '✓ in use' : ''}</td></tr>`;
   }).join('');
   return `<dt>Rate</dt><dd><table class="rates">${rows}</table>` +
@@ -249,6 +249,7 @@ function showCard(id, td) {
   const look = line && sorLookup(line.code);
   if (!look || document.querySelector('dialog[open]') || editingCode(td)) return hideCard();
   const it = look.info;
+  card.style.width = ''; // let it size to this item's rates before measuring
   card.innerHTML = `<div class="hc-head"><b>${esc(it.code)}</b> &nbsp;${esc(it.short)}</div>` +
     `<dl class="kv"><dt>Unit</dt><dd>${esc(it.unit)}</dd>${ratesHtml(look)}</dl>` +
     `<div class="hc-long">${it.long ? longTextHtml(it.long) : 'No long text in SOR.'}</div>` +

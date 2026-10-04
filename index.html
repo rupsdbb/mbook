@@ -9,15 +9,18 @@
 </head>
 <body>
 <header>
+  <div class="hrow">
   <h1 class="brand"><span id="appName">MBook</span><button class="ver" id="appVer" title="What's in this version"></button></h1>
   <nav class="tabs" role="tablist">
     <button class="tab active" id="tabSheet" role="tab" aria-selected="true">Measurement</button>
     <button class="tab" id="tabReport" role="tab" aria-selected="false">Report</button>
   </nav>
-  <label class="field">Project <input id="projName" placeholder="Project / work name"></label>
-  <label class="field" id="stateField" hidden title="Each State has its own SOR; rates for this State (and rates not tied to a State) are used.">State <select id="projState"></select></label>
+  <label class="field grow">Project <input id="projName" placeholder="Project / work name"></label>
+  <label class="field" id="stateField" title="Each State has its own SOR; rates for this State (and rates not tied to a State) are used.">State <select id="projState"></select></label>
   <label class="field" title="SOR rates valid on this date are used. Leave blank to use the rates valid today.">Rates as on <input type="date" id="rateDate"></label>
   <label class="field">Discount % <input id="discount" inputmode="decimal" placeholder="0"></label>
+  </div>
+  <div class="hrow">
   <div class="group">
     <button id="btnNew" title="Start a new project">New</button>
     <button id="btnOpen" title="Open a .boq project file">Open…</button>
@@ -50,6 +53,7 @@
       <button data-act="drawings">Drawings folder…</button>
       <button data-act="confirm-del" id="menuConfirmDel">Ask before deleting rows: On</button>
     </div>
+  </div>
   </div>
 </header>
 
@@ -273,8 +277,11 @@
 <div id="hoverCard" role="tooltip"></div>
 <div id="toast"></div>
 
-<!-- data/sor.js is your own SOR (kept out of the repository); the sample is used when it is absent -->
+<!-- SOR, in order of preference: one imported in the browser, your own data/sor.js
+     (kept out of this repository), the shared SOR published at rupsdbb.github.io/mbook-data,
+     then the sample. A file that isn't there (or no internet) is simply skipped. -->
 <script src="data/sor.sample.js"></script>
+<script src="https://rupsdbb.github.io/mbook-data/sor.js"></script>
 <script src="data/sor.js"></script>
 <script src="data/bis.js"></script>
 <script src="js/app.js"></script>

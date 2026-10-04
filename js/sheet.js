@@ -88,7 +88,7 @@ function updateRow(tr, line, idx) {
   cells[10].textContent = line.code || c.qty ? fmtQty(c.qty, c.uf) : '';
   cells[11].textContent = c.info ? c.info.unit : (line.ref?.unit || '');
   cells[12].textContent = c.sor ? fmtMoney(c.price) : (c.look ? '—' : '');
-  cells[12].title = c.look && !c.sor ? `No SOR rate ${rateContext()}` : (c.sor?.state ? `${c.sor.state} SOR` : '');
+  cells[12].title = c.look && !c.sor ? `No SOR rate ${rateContext()}` : (c.sor?.states.length ? `${c.sor.states.join('/')} SOR` : '');
   cells[13].textContent = c.sor ? fmtMoney(c.amount) : '';
   const flags = flagsFor(line, c);
   const fc = cells[2];
@@ -156,21 +156,35 @@ function refreshLists() {
   $('assetList').innerHTML = uniq('asset').map(v => `<option value="${esc(v)}">`).join('');
 }
 
-// The State selector shows only when the SOR names States (or the project has one)
+// The State box is always in the header, so the layout never shifts. With an
+// SOR that names no States it is blank and greyed out. Otherwise it lists just
+// those States and one is always chosen: a project can't take another State's
+// rates. A State the SOR doesn't have is replaced by the first one it does.
 function refreshStates() {
-  const list = [...sorStates];
-  if (project.state && !list.some(s => sameState(s, project.state))) list.push(project.state);
-  $('stateField').hidden = !list.length;
-  $('projState').innerHTML = `<option value="">${list.length > 1 ? '— choose —' : 'Any'}</option>` +
-    list.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
-  $('projState').value = list.find(s => sameState(s, project.state)) || '';
+  const list = sorStates;
+  const sel = $('projState');
+  sel.disabled = !list.length;
+  sel.title = list.length ? '' : 'This SOR has no State-specific rates';
+  sel.innerHTML = list.length
+    ? list.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')
+    : '<option value=""></option>';
+  const keep = list.find(s => sameState(s, project.state));
+  const next = keep || list[0] || '';
+  if (next !== project.state) {
+    const old = project.state;
+    if (old && list.length)
+      setTimeout(() => toast(`State ${old} isn't in this SOR — using ${next}`), 0);
+    project.state = next;
+    pickCache = null;
+  }
+  sel.value = next;
 }
 function refreshDataInfo() {
   refreshStates();
   const custom = store.has(KEY_SOR) || store.has(KEY_BIS);
   const extra = SOR.items.length > sorMap.size ? ` (${SOR.items.length} rates)` : '';
   $('stData').innerHTML = `SOR <b>${sorMap.size}</b> items${extra} · BIS <b>${BIS.items.length}</b> sections` +
-    (sorStates.length ? ` · State <b>${project.state ? esc(project.state) : 'not chosen'}</b>` : '') +
+    (sorStates.length ? ` · State <b>${project.state ? esc(stateName(project.state)) : 'not chosen'}</b>` : '') +
     ` · rates as on <b>${project.date ? fmtDate(project.date) : 'today'}</b>` +
     (custom ? ' · <span title="Imported from CSV">custom data</span>' : '');
   $('stData').title = `SOR: ${SOR.source}\nBIS: ${BIS.source}` + (window.BUILD ? `\nBuilt ${fmtDate(window.BUILD.date)}` : '');

@@ -103,8 +103,9 @@ When you're ready, [load your own SOR](#using-your-own-sor).
   date is used. Leave it blank to use the rate valid today; if your SOR has
   expired, the latest rate on file is used and the entry is flagged so you can
   set the date of the work.
-- **State** — appears once your SOR contains State-specific rates. Each entry
-  then uses that State's rate, falling back to rates that apply in every State.
+- **State** — becomes available once your SOR contains State-specific rates,
+  and lists just those States; one is always chosen. Each entry uses that
+  State's rate, falling back to rates that apply in every State.
 
 Entries without a valid rate are flagged in red.
 
@@ -131,6 +132,12 @@ project file you can back up, email or open on another computer.
 
 ## Using your own SOR
 
+The [online version](https://rupsdbb.github.io/mbook/) loads a shared SOR and
+its drawings from [mbook-data](https://github.com/rupsdbb/mbook-data)
+automatically. MBook picks the SOR in this order: one you imported in your
+browser, a `data/sor.js` next to the page, the shared SOR, and finally the
+built-in sample. To use your own rates instead:
+
 **From a CSV file** — in Excel, save your SOR sheet as CSV, then in MBook use
 **Data ▸ Replace SOR from CSV…**. Use **Data ▸ Add SOR rates from CSV…** to add
 another period or another State alongside the current rates.
@@ -156,8 +163,9 @@ Columns are matched by heading, or taken in this order if there is no heading ro
 
 - Only the first four columns are required.
 - Dates may be `2025-04-01`, `01.04.2025`, `01-04-2025` or `01/04/2025` (day first).
-- Leave *State* blank for rates that apply in every State. If the file has no
-  *State* column, MBook asks which State it is for.
+- *State* takes a code of 2–4 letters: `MP`, `CG`, `UP` …, or `MPCG` for an
+  SOR that serves both States. Leave it blank for rates that apply in every
+  State. If the file has no *State* column, MBook asks which State it is for.
 
 </details>
 

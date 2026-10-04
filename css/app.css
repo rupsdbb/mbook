@@ -52,10 +52,16 @@ button.primary:hover { filter: brightness(1.08); }
 button:disabled { opacity: .5; cursor: default; }
 
 /* ---------- header ---------- */
+/* two rows — fields above, buttons below — each spanning the full width:
+   the Project box takes up the slack on top, the Data menu sits at the right
+   below, so both rows end at the same edge */
 header {
   background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  padding: 8px 12px; display: flex; flex-direction: column; gap: 8px;
 }
+.hrow { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.field.grow { flex: 1; }
+.field.grow input { flex: 1; min-width: 100px; }
 header h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 600; }
 .brand { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .brand #appName { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
@@ -78,13 +84,14 @@ footer .gh:hover { color: var(--text); }
 footer .gh.mail { right: 41px; } /* 12px gap to the left of the GitHub icon */
 footer .gh[hidden] { display: none; }
 .field { display: flex; align-items: center; gap: 6px; color: var(--text-2); }
-.field select { border: 1px solid var(--border); border-radius: 5px; background: var(--surface); padding: 3px 4px; max-width: 170px; }
-.field[hidden] { display: none; }
-.field input {
+/* inputs and the State box share one height so the header row lines up */
+.field input, .field select {
   border: 1px solid var(--border); border-radius: 5px; background: var(--surface);
-  padding: 4px 6px;
+  height: 28px; padding: 0 6px;
 }
-#projName { width: 260px; }
+.field select { width: 76px; } /* a State code: up to 4 letters */
+.field select:disabled { color: var(--text-2); opacity: 1; cursor: not-allowed; }
+#projName { width: auto; }
 #discount { width: 64px; text-align: right; }
 #discount.bad { border-color: var(--err); outline: 1px solid var(--err); }
 .group { display: flex; gap: 4px; align-items: center; }
@@ -204,7 +211,7 @@ dialog::backdrop { background: rgba(10, 14, 20, .35); }
 #dlgLong pre { white-space: pre-wrap; font: inherit; margin: 10px 0 0; max-height: 50vh; overflow: auto; }
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
 .kv dt { color: var(--text-2); }
-.kv dd { margin: 0; }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .form { display: grid; grid-template-columns: max-content 1fr; gap: 8px 12px; align-items: center; }
 .form input, .form select { border: 1px solid var(--border-strong); border-radius: 5px; padding: 5px 7px; background: var(--surface); width: 100%; }
 .note { color: var(--text-2); font-size: 12px; margin: 10px 0 0; }
@@ -235,7 +242,7 @@ button.danger:hover { background: var(--err-soft); }
 #toast button:hover { background: rgba(127,127,127,.25); }
 /* SAP-style card shown when hovering a Service No */
 #hoverCard {
-  position: fixed; z-index: 20; width: 440px; max-width: calc(100vw - 16px);
+  position: fixed; z-index: 20; width: max-content; min-width: 380px; max-width: min(600px, calc(100vw - 16px));
   background: var(--surface); border: 1px solid var(--border-strong); border-left: 3px solid var(--accent);
   border-radius: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.22); padding: 10px 12px;
   display: none; cursor: pointer; font-size: 12.5px;
@@ -244,6 +251,7 @@ button.danger:hover { background: var(--err-soft); }
 #hoverCard:hover { border-color: var(--accent); }
 .hc-head { margin-bottom: 8px; }
 .hc-long {
+  contain: inline-size; /* wraps to the card; doesn't widen it */
   margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); color: var(--text-2);
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
@@ -298,6 +306,13 @@ body.view-report .sheet-only { display: none !important; }
 .menu-pop.open { display: block; }
 .menu-pop button { display: block; width: 100%; text-align: left; border: 0; border-radius: 4px; }
 
+/* narrower screens: tighter header so both rows still fit on one line each */
+@media (max-width: 1280px) {
+  .hrow { column-gap: 8px; }
+  header button { padding: 4px 7px; }
+  .field { gap: 4px; }
+  .brand { gap: 4px; }
+}
 @media (max-width: 700px) {
   #projName { width: 100%; }
   header .field:first-of-type { flex: 1 1 100%; }

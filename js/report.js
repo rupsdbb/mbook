@@ -95,7 +95,7 @@ function renderReport() {
   $('repTable').hidden = !any;
   $('repEmpty').hidden = any;
   $('repTitle').innerHTML = `<h2>${esc(project.name || 'BOQ')}</h2>` +
-    `Consolidated by ${esc(groupingName(levels))}${project.state ? ` · ${esc(project.state)}` : ''}` +
+    `Consolidated by ${esc(groupingName(levels))}${project.state ? ` · ${esc(stateName(project.state))}` : ''}` +
     ` · ${project.date ? `rates as on ${esc(fmtDate(project.date))}` : 'no rate date set'}` +
     (discountFrac() ? ` · discount ${esc(project.discount)}%` : '');
 }
