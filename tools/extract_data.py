@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# MBook — Copyright (C) 2026 rupsdbb
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Extract the SOR and BIS sheets from a workbook into data/sor.js and data/bis.js.
 
 Usage: python3 tools/extract_data.py "path/to/workbook.xlsm" [--state "Bihar"]

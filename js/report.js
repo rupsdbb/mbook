@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -94,7 +96,7 @@ function renderReport() {
   $('repEmpty').hidden = any;
   $('repTitle').innerHTML = `<h2>${esc(project.name || 'BOQ')}</h2>` +
     `Consolidated by ${esc(groupingName(levels))}${project.state ? ` · ${esc(project.state)}` : ''}` +
-    ` · rates as on ${project.date ? esc(fmtDate(project.date)) : 'newest SOR'}` +
+    ` · ${project.date ? `rates as on ${esc(fmtDate(project.date))}` : 'no rate date set'}` +
     (discountFrac() ? ` · discount ${esc(project.discount)}%` : '');
 }
 ['repGroup', 'repHideZero', 'repDetail'].forEach(id => $(id).addEventListener('change', () => {

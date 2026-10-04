@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 :root {
   --bg: #f6f7f9;
   --surface: #ffffff;
@@ -57,8 +59,17 @@ header {
 header h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 600; }
 .brand { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .brand #appName { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
-.brand .ver { font-size: 10.5px; font-weight: 600; color: var(--text-2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 0 5px; }
+.brand .ver { font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1.5; color: var(--text-2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 5px; background: transparent; cursor: pointer; align-self: center; }
+.brand .ver:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-2); }
+#dlgChanges { width: 620px; }
+.changes { max-height: 60vh; overflow: auto; }
+.changes h3 { font-size: 14px; margin: 0 0 2px; }
+.changes .rel-date { color: var(--text-2); font-size: 12px; margin: 0 0 8px; }
+.changes ul { margin: 0 0 14px; padding-left: 18px; }
+.changes li { margin: 4px 0; }
+.changes code { font: 12px var(--mono); background: var(--surface-2); padding: 0 3px; border-radius: 3px; }
+#changesLink { color: var(--accent); }
 /* GitHub icon: bottom-right corner, the same 12px from the right and bottom
    edges; the footer is tall enough for that even when it fits on one line */
 footer { align-items: center; align-content: center; position: relative; padding-right: 68px !important; min-height: 41px; }
@@ -75,6 +86,7 @@ footer .gh[hidden] { display: none; }
 }
 #projName { width: 260px; }
 #discount { width: 64px; text-align: right; }
+#discount.bad { border-color: var(--err); outline: 1px solid var(--err); }
 .group { display: flex; gap: 4px; align-items: center; }
 .sep { width: 1px; align-self: stretch; background: var(--border); }
 .spacer { flex: 1; }
@@ -158,6 +170,7 @@ footer {
 }
 footer b { color: var(--text); }
 footer .warn b { color: var(--warn); }
+#stFlagsWrap { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
 kbd {
   font: 11px var(--mono); border: 1px solid var(--border-strong); border-bottom-width: 2px;
   border-radius: 3px; padding: 0 4px; background: var(--surface);

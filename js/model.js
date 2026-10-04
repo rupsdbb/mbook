@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -60,21 +62,24 @@ function compute(line) {
 
 function flagsFor(line, c) {
   const out = [];
-  if (line.code && !c.look) out.push({ level: 'err', text: `Service No ${line.code} is not in the SOR.` });
-  if (c.look && !c.sor) out.push({ level: 'err', text: `No SOR rate for ${line.code} ${rateContext()}. ` +
+  if (line.code && !c.look) out.push({ level: 'err', kind: 'nosor', text: `Service No ${line.code} is not in the SOR.` });
+  if (c.look && !c.sor) out.push({ level: 'err', kind: 'norate', text: `No SOR rate for ${line.code} ${rateContext()}. ` +
     `Rates exist for: ${c.look.entries.map(e => (e.state ? e.state + ', ' : '') + fmtPeriod(e)).join('; ')}.` });
+  if (c.look?.outOfDate)
+    out.push({ level: 'warn', kind: 'expired', text: `The SOR rate for ${line.code} ${validityNote(c.sor)}; with no rate date set, ` +
+      'the latest rate on file is used. Set Rates as on to the date of the work.' });
   if (c.sor?.state && !project.state)
-    out.push({ level: 'warn', text: `Rate taken from the ${c.sor.state} SOR — choose the project's State to be sure.` });
-  if (c.err) out.push({ level: 'err', text: 'A dimension cannot be calculated — check No / L / B / H/D.' });
+    out.push({ level: 'warn', kind: 'state', text: `Rate taken from the ${c.sor.state} SOR — choose the project's State to be sure.` });
+  if (c.err) out.push({ level: 'err', kind: 'dim', text: 'A dimension cannot be calculated — check No / L / B / H/D.' });
   const ref = line.ref;
   if (ref && c.info) {
     if (ref.short != null && ref.short.trim() !== c.info.short.trim())
-      out.push({ level: 'warn', text: `Short Text changed. Template: “${ref.short}” · SOR: “${c.info.short}”` });
+      out.push({ level: 'warn', kind: 'template', text: `Short Text changed. Template: “${ref.short}” · SOR: “${c.info.short}”` });
     if (ref.unit != null && ref.unit.trim().toUpperCase() !== c.info.unit.trim().toUpperCase())
-      out.push({ level: 'warn', text: `Unit changed. Template: ${ref.unit} · SOR: ${c.info.unit}` });
+      out.push({ level: 'warn', kind: 'template', text: `Unit changed. Template: ${ref.unit} · SOR: ${c.info.unit}` });
   }
   if (ref && ref.qty != null && !c.err && roundTo(Number(ref.qty), c.uf.dp) !== c.qty)
-    out.push({ level: 'warn', text: `Qty differs. Template: ${fmtQty(Number(ref.qty), c.uf)} · No×L×B×H/D: ${fmtQty(c.qty, c.uf)}` });
+    out.push({ level: 'warn', kind: 'template', text: `Qty differs. Template: ${fmtQty(Number(ref.qty), c.uf)} · No×L×B×H/D: ${fmtQty(c.qty, c.uf)}` });
   return out;
 }
 
@@ -86,7 +91,14 @@ const nfQ = {};
 const qtyNf = uf => nfQ[uf.min + '/' + uf.dp] ||= new Intl.NumberFormat('en-IN', { minimumFractionDigits: uf.min, maximumFractionDigits: uf.dp });
 const fmtMoney = v => nf2.format(v || 0);
 const fmtQty = (v, uf = unitFmt('')) => isNaN(v) ? '#ERR' : qtyNf(uf).format(v || 0);
-const fmtDim = v => String(Math.round(v * 1e6) / 1e6);
+// Dimension values shown with the item's decimal places — "1" reads 1.00 for
+// metres and areas, 1.000 for volumes and weights, 1 for counts — keeping any
+// further digits that were typed (up to 6)
+const fmtDim = (v, uf = { min: 0 }) => {
+  const r = Math.round(v * 1e6) / 1e6;
+  const typed = (String(r).split('.')[1] || '').length;
+  return (r + 0).toFixed(Math.max(uf.min, Math.min(typed, 6)));
+};
 const fmtDate = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : (iso || ''); };
 const fmtPeriod = e => e.from || e.to ? `${fmtDate(e.from) || '…'} to ${fmtDate(e.to) || '…'}` : 'no validity dates';
 function esc(s) {

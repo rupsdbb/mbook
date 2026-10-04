@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -51,13 +53,14 @@ function loadProject(data) {
   if (!data || data.format !== 'boq-project' || !Array.isArray(data.lines)) throw new Error('Not a BOQ project file');
   project = newProject();
   project.name = asStr(data.name);
-  project.discount = asStr(data.discount);
+  project.discount = fmtDiscount(asStr(data.discount));
   project.date = /^\d{4}-\d{2}-\d{2}$/.test(data.date || '') ? data.date : '';
   project.state = asStr(data.state).trim();
   pickCache = null;
   project.lines = data.lines.filter(l => l && typeof l === 'object').map(l => newLine({
-    code: asStr(l.serviceNo).trim(), desc: asStr(l.description), no: asStr(l.no), l: asStr(l.l), b: asStr(l.b),
-    hd: asStr(l.hd), hdSection: asStr(l.hdSection), poItem: asStr(l.poItem), asset: asStr(l.asset), ref: cleanRef(l.ref),
+    code: asStr(l.serviceNo).trim(), desc: asStr(l.description),
+    no: normDim(asStr(l.no)), l: normDim(asStr(l.l)), b: normDim(asStr(l.b)), hd: normDim(asStr(l.hd)),
+    hdSection: asStr(l.hdSection), poItem: asStr(l.poItem), asset: asStr(l.asset), ref: cleanRef(l.ref),
   }));
   checked.clear(); currentId = null;
   undoStack = []; // undo history belongs to the project it came from
@@ -146,8 +149,9 @@ $('dlgTpl').addEventListener('close', () => {
   const tplName = data.name || pendingTpl.file;
   const po = $('tplPo').value.trim(), asset = $('tplAsset').value.trim();
   const lines = data.lines.filter(t => t && typeof t === 'object').map(t => newLine({
-    code: asStr(t.serviceNo).trim(), desc: asStr(t.description), no: asStr(t.no), l: asStr(t.l), b: asStr(t.b),
-    hd: asStr(t.hd), hdSection: asStr(t.hdSection), poItem: po, asset,
+    code: asStr(t.serviceNo).trim(), desc: asStr(t.description),
+    no: normDim(asStr(t.no)), l: normDim(asStr(t.l)), b: normDim(asStr(t.b)), hd: normDim(asStr(t.hd)),
+    hdSection: asStr(t.hdSection), poItem: po, asset,
     ref: cleanRef({ template: tplName, short: t.shortText, unit: t.unit, qty: t.qty }),
   }));
   // Lines whose template values already agree carry nothing to review

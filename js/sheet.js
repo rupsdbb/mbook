@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -26,7 +28,7 @@ function buildRow(line, idx) {
   const tr = document.createElement('tr');
   tr.dataset.id = line.id;
   tr.innerHTML = `
-    <td class="c-sel"><input type="checkbox" class="rowchk"></td>
+    <td class="c-sel"><input type="checkbox" class="rowchk" tabindex="-1"></td>
     <td class="c-line ro num"></td>
     <td class="c-flag"></td>
     <td class="c-code">${cellInput('code')}</td>
@@ -61,7 +63,10 @@ function showCell(inp, line) {
     td.classList.toggle('expr', isExpr);
     td.classList.toggle('bad', !!r.error);
     td.title = isExpr ? `= ${raw}` : (r.error ? `Cannot calculate: ${raw}` : '');
-    inp.value = (isExpr && document.activeElement !== inp) ? fmtDim(r.value) : raw;
+    // While editing, the cell shows what was typed; otherwise the value in the
+    // item's decimal places (an expression shows its result)
+    inp.value = document.activeElement !== inp && r.value !== null && !r.error
+      ? fmtDim(r.value, compute(line).uf) : raw;
     if (f === 'hd') {
       const tag = td.querySelector('.tag');
       tag.textContent = line.hdSection || '';
@@ -108,16 +113,41 @@ function refreshRow(line) {
 
 function refreshTotals() {
   let total = 0, flagged = 0;
+  const kinds = {}, expiredOn = [];
   for (const line of project.lines) {
     const c = compute(line);
     total += c.amount;
-    if (flagsFor(line, c).length) flagged++;
+    const flags = flagsFor(line, c);
+    if (!flags.length) continue;
+    flagged++;
+    for (const k of new Set(flags.map(f => f.kind))) kinds[k] = (kinds[k] || 0) + 1;
+    if (c.look?.outOfDate && c.sor.to) expiredOn.push(c.sor.to);
   }
   $('grandTotal').textContent = fmtMoney(total);
   $('stLines').textContent = project.lines.length;
   $('stFlags').textContent = flagged;
+  $('stFlagsLabel').textContent = flagged === 1 ? 'line needs review' : 'lines need review';
   $('stFlagsWrap').hidden = flagged === 0;
+  $('stFlagsWrap').title = reviewSummary(kinds, expiredOn);
 }
+
+// What the "lines need review" count is made of, shown when it is hovered
+function reviewSummary(kinds, expiredOn) {
+  const n = k => `${kinds[k]} line${kinds[k] > 1 ? 's' : ''}`;
+  const today = todayISO();
+  const ended = expiredOn.filter(t => t < today).sort().pop();
+  const out = [];
+  if (kinds.expired) out.push(`${n('expired')}: SOR rates not valid today` + (ended ? ` (expired on ${fmtDate(ended)})` : '') +
+    `. No rate date is set, so today's date (${fmtDate(today)}) was checked. Set Rates as on to the date of the work.`);
+  if (kinds.norate) out.push(`${n('norate')}: no SOR rate ${rateContext()}.`);
+  if (kinds.nosor) out.push(`${n('nosor')}: Service No not found in the SOR.`);
+  if (kinds.dim) out.push(`${n('dim')}: a dimension can't be calculated.`);
+  if (kinds.state) out.push(`${n('state')}: rate taken from a State's SOR, but no State is chosen.`);
+  if (kinds.template) out.push(`${n('template')}: differ from the template they came from.`);
+  if (out.length) out.push('Click the ! on a line for details.');
+  return out.join('\n\n');
+}
+
 
 function refreshLists() {
   const uniq = f => [...new Set(project.lines.map(l => (l[f] || '').trim()).filter(Boolean))].sort();
@@ -140,7 +170,7 @@ function refreshDataInfo() {
   const extra = SOR.items.length > sorMap.size ? ` (${SOR.items.length} rates)` : '';
   $('stData').innerHTML = `SOR <b>${sorMap.size}</b> items${extra} · BIS <b>${BIS.items.length}</b> sections` +
     (sorStates.length ? ` · State <b>${project.state ? esc(project.state) : 'not chosen'}</b>` : '') +
-    ` · rates as on <b>${project.date ? fmtDate(project.date) : 'newest'}</b>` +
+    ` · rates as on <b>${project.date ? fmtDate(project.date) : 'today'}</b>` +
     (custom ? ' · <span title="Imported from CSV">custom data</span>' : '');
   $('stData').title = `SOR: ${SOR.source}\nBIS: ${BIS.source}` + (window.BUILD ? `\nBuilt ${fmtDate(window.BUILD.date)}` : '');
 }
@@ -188,7 +218,8 @@ function commitCell(inp, explicit = false) {
   const line = tr && lineById(Number(tr.dataset.id));
   if (!line) return false;
   const f = inp.dataset.f;
-  const val = f === 'desc' || f === 'poItem' || f === 'asset' ? inp.value : inp.value.trim();
+  let val = f === 'desc' || f === 'poItem' || f === 'asset' ? inp.value : inp.value.trim();
+  if (DIMS.includes(f)) val = normDim(val);
   if (val === (line[f] ?? '')) {
     // Text left unresolved earlier: cancelling this search clears it
     if (explicit && f === 'code' && val && !sorMap.has(val)) { openServiceSearch(line, val, ''); return true; }
@@ -214,8 +245,7 @@ function commitCell(inp, explicit = false) {
   } else {
     line[f] = val;
   }
-  showCell(inp, line);
-  updateRow(tr, line, indexOfId(line.id));
+  if (f === 'code') refreshRow(line); else { showCell(inp, line); updateRow(tr, line, indexOfId(line.id)); }
   changed();
   if (f === 'poItem' || f === 'asset') refreshLists();
   return popup;
@@ -240,6 +270,33 @@ tbody.addEventListener('keydown', e => {
   const id = Number(tr.dataset.id);
   const idx = indexOfId(id);
   const f = inp.dataset.f;
+  // Ctrl+D fills the cell from the one above, as in Excel. A Service No brings
+  // its Short Text, Unit and Price with it; H/D brings its steel section.
+  if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'd' || e.key === 'D')) {
+    e.preventDefault(); // instead of the browser's "bookmark this page"
+    const line = lineById(id), above = project.lines[idx - 1];
+    if (!above) return toast('There is no row above to copy from');
+    line[f] = above[f];
+    if (f === 'hd') line.hdSection = above.hdSection;
+    refreshRow(line);
+    inp.value = line[f] ?? ''; // still editing: show it as typed, cursor at the end
+    inp.setSelectionRange(inp.value.length, inp.value.length);
+    changed();
+    if (f === 'poItem' || f === 'asset') refreshLists();
+    return;
+  }
+  // Tab from the last field (Asset) goes to the next row's Service No,
+  // adding a row first when this is the last one
+  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && f === 'asset') {
+    e.preventDefault();
+    commitCell(inp, true);
+    if (idx === project.lines.length - 1) {
+      const cur = lineById(id);
+      addRows(project.lines.length, [newLine({ poItem: cur.poItem, asset: cur.asset })]);
+    }
+    focusCell(project.lines[idx + 1].id, 'code');
+    return;
+  }
   if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     // Arrows move between rows; Alt+↓ still opens the PO Item / Asset suggestions
     if ((f === 'poItem' || f === 'asset') && e.key !== 'Enter' && e.altKey) return;
@@ -387,13 +444,52 @@ $('btnUp').onclick = () => moveRows(-1);
 $('btnDown').onclick = () => moveRows(1);
 
 /* ---------- discount & name ---------- */
-$('discount').addEventListener('change', e => {
-  const v = e.target.value.trim();
-  if (v && evalExpr(v).error) { toast('Discount must be a number'); e.target.value = project.discount; return; }
-  project.discount = v;
+// Discount %: a number with up to 2 decimal places. Prices follow it as it is
+// typed ("1." already counts as 1); a third decimal or a letter can't be
+// typed, and a lone "-" or "." is outlined and ignored. On leaving the field
+// it is shown with 2 decimals ("1." → "1.00").
+const DISCOUNT_OK = /^-?\d*(\.\d{0,2})?$/;
+let discountTyped = '';
+// Entering the field selects its value, so typing replaces "1.00" rather than
+// adding a third decimal to it
+let discountJustFocused = false;
+$('discount').addEventListener('focus', e => { discountTyped = e.target.value; e.target.select(); discountJustFocused = true; });
+// the click that focused the field would otherwise drop that selection again
+$('discount').addEventListener('mouseup', e => { if (discountJustFocused) e.preventDefault(); discountJustFocused = false; });
+$('discount').addEventListener('input', e => {
+  const el = e.target;
+  // a pasted value with more decimals keeps the first two ("12.345" → "12.34")
+  const cut = el.value.trim().replace(/^(-?\d*\.\d{2})\d+$/, '$1');
+  if (cut !== el.value.trim() && DISCOUNT_OK.test(cut)) el.value = cut;
+  if (!DISCOUNT_OK.test(el.value.trim())) {
+    const at = el.selectionStart - (el.value.length - discountTyped.length);
+    el.value = discountTyped;
+    el.setSelectionRange(at, at);
+    return;
+  }
+  discountTyped = el.value;
+  const v = el.value.trim();
+  const partial = /^-?\.?$/.test(v) && v !== '';
+  el.classList.toggle('bad', partial);
+  if (partial) return;
+  const next = v === '' ? '' : String(Number(v));
+  if (String(Number(project.discount || 0)) === String(Number(next || 0)) && !!next === !!project.discount) return;
+  project.discount = next;
   for (const line of project.lines) refreshRow(line);
   changed();
 });
+$('discount').addEventListener('change', e => {
+  project.discount = fmtDiscount(project.discount);
+  e.target.value = project.discount;
+  e.target.classList.remove('bad');
+  discountTyped = e.target.value;
+  changed();
+});
+// "1" / "1." / "1.5" → "1.00" / "1.00" / "1.50"; blank stays blank
+function fmtDiscount(v) {
+  const n = evalExpr(v).value;
+  return n === null || n === undefined ? '' : (Math.round(n * 100) / 100 + 0).toFixed(2);
+}
 $('projName').addEventListener('change', e => { project.name = e.target.value; changed(); });
 // Rate date and State both decide which SOR rate prices each line
 function rateBasisChanged() {

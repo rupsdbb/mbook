@@ -81,6 +81,8 @@ When you're ready, [load your own SOR](#using-your-own-sor).
 | Keys | Action |
 |---|---|
 | <kbd>Enter</kbd> / <kbd>↑</kbd> / <kbd>↓</kbd> | Move between rows (<kbd>Enter</kbd> on the last row adds one) |
+| <kbd>Tab</kbd> | Next cell; from *Asset* it goes to the next row's *Service No*, adding a row at the end |
+| <kbd>Ctrl</kbd> + <kbd>D</kbd> | Copy the cell above into this one, as in Excel (a Service No brings its description, unit and rate) |
 | <kbd>Esc</kbd> | Cancel a search and restore the cell |
 | <kbd>Ctrl</kbd> + <kbd>I</kbd> | Show the full SOR text for the current line |
 | <kbd>Delete</kbd> | Delete the selected row(s) |
@@ -90,7 +92,9 @@ When you're ready, [load your own SOR](#using-your-own-sor).
 ### Rates as on, and State
 
 - **Rates as on** — for each item, the rate whose validity period covers this
-  date is used. Leave it blank to use the newest rate.
+  date is used. Leave it blank to use the rate valid today; if your SOR has
+  expired, the latest rate on file is used and the line is flagged so you can
+  set the date of the work.
 - **State** — appears once your SOR contains State-specific rates. Each line
   then uses that State's rate, falling back to rates that apply in every State.
 
@@ -206,8 +210,10 @@ tools/         extract_data.py (workbook → data/*.js) · build.py (single-file
   includes `drawings/`.
 - **Work data stays out of git** — `.gitignore` excludes workbooks, `.boq`
   projects, CSV files, `data/sor.js` and `dist/`.
-- **Releasing** — bump `version` in `js/app.js`, add an entry to
-  [CHANGELOG.md](CHANGELOG.md), and tag the commit (`git tag v1.0.1`).
+- **Releasing** — bump `version` in `js/app.js`, add the release notes at the
+  top of `js/changelog.js` (shown in the app when the version is clicked), run
+  `tools/build.py` to regenerate [CHANGELOG.md](CHANGELOG.md), and tag the
+  commit (`git tag v1.0.1`).
 
 ## License
 

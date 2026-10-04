@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- MBook — Copyright (C) 2026 rupsdbb. SPDX-License-Identifier: GPL-3.0-or-later -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -8,14 +9,14 @@
 </head>
 <body>
 <header>
-  <h1 class="brand"><span id="appName">MBook</span><span class="ver" id="appVer"></span></h1>
+  <h1 class="brand"><span id="appName">MBook</span><button class="ver" id="appVer" title="What's in this version"></button></h1>
   <nav class="tabs" role="tablist">
     <button class="tab active" id="tabSheet" role="tab" aria-selected="true">Measurement</button>
     <button class="tab" id="tabReport" role="tab" aria-selected="false">Report</button>
   </nav>
   <label class="field">Project <input id="projName" placeholder="Project / work name"></label>
   <label class="field" id="stateField" hidden title="Each State has its own SOR; rates for this State (and rates not tied to a State) are used.">State <select id="projState"></select></label>
-  <label class="field" title="SOR rates valid on this date are used. Leave blank to use the newest rates.">Rates as on <input type="date" id="rateDate"></label>
+  <label class="field" title="SOR rates valid on this date are used. Leave blank to use the rates valid today.">Rates as on <input type="date" id="rateDate"></label>
   <label class="field">Discount % <input id="discount" inputmode="decimal" placeholder="0"></label>
   <div class="group">
     <button id="btnNew" title="Start a new project">New</button>
@@ -51,6 +52,7 @@
     </div>
   </div>
 </header>
+
 
 <main id="main">
   <table id="grid">
@@ -115,11 +117,11 @@
 
 <footer>
   <span><b id="stLines">0</b> lines</span>
-  <span class="warn" id="stFlagsWrap"><b id="stFlags">0</b> need review</span>
+  <span class="warn" id="stFlagsWrap"><b id="stFlags">0</b> <span id="stFlagsLabel">lines need review</span></span>
   <span class="datainfo" id="stData"></span>
   <span id="stSaved"></span>
   <span class="spacer"></span>
-  <span class="keys sheet-only">No/L/B/H/D take + − × ÷ ^ ( ) sqrt() pi · Service No: type a code or words to search · H/D: type <kbd>IS…</kbd> for a steel section · <kbd>Ctrl</kbd>+<kbd>I</kbd> full SOR text · <kbd>Enter</kbd>/<kbd>↑</kbd><kbd>↓</kbd> move</span>
+  <span class="keys sheet-only">No/L/B/H/D take + − × ÷ ^ ( ) sqrt() pi · Service No: type a code or words to search · H/D: type <kbd>IS…</kbd> for a steel section · <kbd>Ctrl</kbd>+<kbd>D</kbd> copy from row above · <kbd>Ctrl</kbd>+<kbd>I</kbd> full SOR text · <kbd>Enter</kbd>/<kbd>↑</kbd><kbd>↓</kbd> move</span>
   <a class="gh mail" id="mailLink" href="#" title="Email the author" aria-label="Email the author"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="currentColor"/><rect x="3.6" y="5.2" width="8.8" height="5.8" rx="0.9" fill="none" stroke="var(--surface)" stroke-width="1.1"/><path d="M3.9 5.7 8 8.7l4.1-3" fill="none" stroke="var(--surface)" stroke-width="1.1" stroke-linejoin="round"/></svg></a>
   <a class="gh" id="ghLink" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 </footer>
@@ -255,6 +257,16 @@
   </form>
 </dialog>
 
+<!-- Release notes (click the version) -->
+<dialog id="dlgChanges">
+  <div class="dlg-head" id="changesHead">What's in MBook</div>
+  <div class="dlg-body changes" id="changesBody"></div>
+  <div class="dlg-foot">
+    <a id="changesLink" target="_blank" rel="noopener" class="hint">Full changelog on GitHub</a>
+    <button class="primary" data-close autofocus>Close</button>
+  </div>
+</dialog>
+
 <datalist id="poList"></datalist>
 <datalist id="assetList"></datalist>
 <input type="file" id="fileInput" hidden>
@@ -266,6 +278,7 @@
 <script src="data/sor.js"></script>
 <script src="data/bis.js"></script>
 <script src="js/app.js"></script>
+<script src="js/changelog.js"></script>
 <script src="js/data.js"></script>
 <script src="js/model.js"></script>
 <script src="js/sheet.js"></script>

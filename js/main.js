@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -41,6 +43,20 @@ if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(authorEmail)) {
 } else {
   $('mailLink').hidden = true;
 }
+
+/* ---------- release notes: click the version ---------- */
+// **bold** and `code` in the notes; everything else is plain text
+const noteHtml = t => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+$('appVer').onclick = () => {
+  const notes = window.CHANGELOG || [];
+  $('changesHead').textContent = `What's in ${APP.name} ${APP.version}`;
+  $('changesBody').innerHTML = notes.map(r =>
+    `<h3>${esc(r.version)}${r.title ? ' — ' + esc(r.title) : ''}</h3>` +
+    `<p class="rel-date">${esc(fmtDate(r.date))}</p>` +
+    `<ul>${r.items.map(i => `<li>${noteHtml(i)}</li>`).join('')}</ul>`).join('') || '<p>No release notes.</p>';
+  $('changesLink').href = APP.url + '/blob/main/CHANGELOG.md';
+  $('dlgChanges').showModal();
+};
 
 /* ---------- start ---------- */
 drawingCfg = store.get(KEY_DRG) || drawingCfg;

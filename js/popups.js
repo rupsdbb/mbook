@@ -1,3 +1,5 @@
+/* MBook — Copyright (C) 2026 rupsdbb
+   SPDX-License-Identifier: GPL-3.0-or-later */
 'use strict';
 
 /* =====================================================================
@@ -157,7 +159,9 @@ function showLongText(line) {
 function ratesHtml(look) {
   const d = project.date;
   const status = !look.entry ? `No rate ${rateContext()}`
-    : (d ? `Valid on ${fmtDate(d)}` : 'Newest rate (no rate date set)') + (project.state ? ` · ${project.state}` : '');
+    : (d ? `Valid on ${fmtDate(d)}`
+       : look.outOfDate ? `Rate ${validityNote(look.entry)} — latest rate on file used (no rate date set)`
+       : 'Valid today (no rate date set)') + (project.state ? ` · ${project.state}` : '');
   const anyState = look.entries.some(e => e.state);
   const rows = look.entries.map(e => {
     const used = e === look.entry;
@@ -165,7 +169,7 @@ function ratesHtml(look) {
       `<td>${esc(fmtPeriod(e))}</td><td class="r">${fmtMoney(e.rate)}</td><td>${used ? '✓ in use' : ''}</td></tr>`;
   }).join('');
   return `<dt>Rate</dt><dd><table class="rates">${rows}</table>` +
-    `<div class="rstat ${look.entry ? '' : 'bad'}">${esc(status)}</div></dd>`;
+    `<div class="rstat ${look.entry && !look.outOfDate ? '' : 'bad'}">${esc(status)}</div></dd>`;
 }
 
 /* ---------- drawing references in long text ---------- */
@@ -236,10 +240,14 @@ function hideCard() {
   clearTimeout(cardTimer); clearTimeout(cardHideTimer);
   card.classList.remove('show'); cardLineId = null;
 }
+// The card is for looking a code up, not for typing one: not while that
+// Service No cell is being edited
+const editingCode = td => document.activeElement === td.querySelector('input.cell');
+tbody.addEventListener('focusin', e => { if (e.target.closest('td.c-code')) hideCard(); });
 function showCard(id, td) {
   const line = lineById(id);
   const look = line && sorLookup(line.code);
-  if (!look || document.querySelector('dialog[open]')) return hideCard();
+  if (!look || document.querySelector('dialog[open]') || editingCode(td)) return hideCard();
   const it = look.info;
   card.innerHTML = `<div class="hc-head"><b>${esc(it.code)}</b> &nbsp;${esc(it.short)}</div>` +
     `<dl class="kv"><dt>Unit</dt><dd>${esc(it.unit)}</dd>${ratesHtml(look)}</dl>` +
