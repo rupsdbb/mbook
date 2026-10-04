@@ -125,15 +125,16 @@ function refreshTotals() {
   }
   $('grandTotal').textContent = fmtMoney(total);
   $('stLines').textContent = project.lines.length;
+  $('stLinesLabel').textContent = project.lines.length === 1 ? 'entry' : 'entries';
   $('stFlags').textContent = flagged;
-  $('stFlagsLabel').textContent = flagged === 1 ? 'line needs review' : 'lines need review';
+  $('stFlagsLabel').textContent = flagged === 1 ? 'entry needs review' : 'entries need review';
   $('stFlagsWrap').hidden = flagged === 0;
   $('stFlagsWrap').title = reviewSummary(kinds, expiredOn);
 }
 
-// What the "lines need review" count is made of, shown when it is hovered
+// What the "entries need review" count is made of, shown when it is hovered
 function reviewSummary(kinds, expiredOn) {
-  const n = k => `${kinds[k]} line${kinds[k] > 1 ? 's' : ''}`;
+  const n = k => `${kinds[k]} ${kinds[k] > 1 ? 'entries' : 'entry'}`;
   const today = todayISO();
   const ended = expiredOn.filter(t => t < today).sort().pop();
   const out = [];
@@ -144,7 +145,7 @@ function reviewSummary(kinds, expiredOn) {
   if (kinds.dim) out.push(`${n('dim')}: a dimension can't be calculated.`);
   if (kinds.state) out.push(`${n('state')}: rate taken from a State's SOR, but no State is chosen.`);
   if (kinds.template) out.push(`${n('template')}: differ from the template they came from.`);
-  if (out.length) out.push('Click the ! on a line for details.');
+  if (out.length) out.push('Click the ! on an entry for details.');
   return out.join('\n\n');
 }
 
@@ -369,7 +370,7 @@ $('btnDup').onclick = () => {
   const lastIdx = Math.max(...ids.map(indexOfId));
   const copies = ids.map(id => newLine({ ...structuredClone(lineById(id)), id: nextId++ }));
   addRows(lastIdx + 1, copies);
-  toast(`Duplicated ${copies.length} line${copies.length > 1 ? 's' : ''}`);
+  toast(`Duplicated ${copies.length} ${copies.length > 1 ? 'entries' : 'entry'}`);
 };
 /* ---------- delete with optional confirmation, and undo ---------- */
 const KEY_CONFIRM_DEL = 'boq.confirmDelete';
@@ -393,17 +394,17 @@ function undoDelete() {
   if (!u) return toast('Nothing to undo');
   for (const [i, l] of u.lines) project.lines.splice(Math.min(i, project.lines.length), 0, l);
   changed(true);
-  toast(`Restored ${u.lines.length} line${u.lines.length > 1 ? 's' : ''}`);
+  toast(`Restored ${u.lines.length} ${u.lines.length > 1 ? 'entries' : 'entry'}`);
   rowEl(u.lines[0][1].id)?.scrollIntoView({ block: 'nearest' });
 }
 function deleteSelected() {
   const ids = targetIds();
   if (!ids.length) return toast('Select a row first');
-  const label = `Deleted ${ids.length} line${ids.length > 1 ? 's' : ''}`;
+  const label = `Deleted ${ids.length} ${ids.length > 1 ? 'entries' : 'entry'}`;
   if (!askBeforeDelete) return deleteLines(ids, label);
   $('delText').textContent = ids.length === 1
-    ? `Delete line ${indexOfId(ids[0]) + 1}${lineById(ids[0]).code ? ' (' + lineById(ids[0]).code + ')' : ''}?`
-    : `Delete ${ids.length} checked lines?`;
+    ? `Delete entry ${indexOfId(ids[0]) + 1}${lineById(ids[0]).code ? ' (' + lineById(ids[0]).code + ')' : ''}?`
+    : `Delete ${ids.length} checked entries?`;
   $('delDontAsk').checked = false;
   const dlg = $('dlgDelete');
   dlg.returnValue = '';
@@ -423,9 +424,9 @@ $('btnDel').onclick = deleteSelected;
 $('btnClear').onclick = () => {
   const n = project.lines.length;
   if (!n) return toast('The sheet is already empty');
-  if (!confirm(`Delete all ${n} lines from the sheet?\n\nProject name, rate date and discount are kept. ` +
+  if (!confirm(`Delete all ${n} entries from the sheet?\n\nProject name, rate date and discount are kept. ` +
     'Undo (Ctrl+Z) brings them back until you close or reload the page.')) return;
-  deleteLines(project.lines.map(l => l.id), `Cleared ${n} lines`);
+  deleteLines(project.lines.map(l => l.id), `Cleared ${n} ${n > 1 ? 'entries' : 'entry'}`);
 };
 function moveRows(dir) {
   const ids = targetIds();
@@ -498,7 +499,7 @@ function rateBasisChanged() {
   changed();
   refreshDataInfo();
   const missing = project.lines.filter(l => { const c = compute(l); return c.look && !c.sor; }).length;
-  if (missing) toast(`${missing} line${missing > 1 ? 's have' : ' has'} no SOR rate ${rateContext()}`);
+  if (missing) toast(`${missing} ${missing > 1 ? 'entries have' : 'entry has'} no SOR rate ${rateContext()}`);
 }
 $('rateDate').addEventListener('change', e => { project.date = e.target.value; rateBasisChanged(); });
 $('projState').addEventListener('change', e => { project.state = e.target.value; rateBasisChanged(); });

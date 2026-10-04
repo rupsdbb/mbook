@@ -267,13 +267,13 @@ function showFlags(line) {
   const c = compute(line);
   const flags = flagsFor(line, c);
   flagTarget = line;
-  $('flagHead').textContent = `Line ${indexOfId(line.id) + 1}${line.code ? ' — ' + line.code : ''}`;
+  $('flagHead').textContent = `Entry ${indexOfId(line.id) + 1}${line.code ? ' — ' + line.code : ''}`;
   $('flagList').innerHTML = flags.map(f => `<li>${esc(f.text)}</li>`).join('');
   const reviewable = !!line.ref && flags.some(f => f.level === 'warn');
   $('flagAccept').hidden = !reviewable;
   $('flagNote').textContent = reviewable
     ? (line.ref.template ? `Imported from template “${line.ref.template}”. ` : '') +
-      'Mark reviewed once you have checked this line; the template values are then forgotten.'
+      'Mark reviewed once you have checked this entry; the template values are then forgotten.'
     : '';
   $('dlgFlag').showModal();
 }

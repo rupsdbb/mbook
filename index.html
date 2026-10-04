@@ -26,8 +26,8 @@
   </div>
   <div class="sep sheet-only"></div>
   <div class="group sheet-only">
-    <button id="btnImportTpl" title="Add lines from a .boqt template">Import template…</button>
-    <button id="btnExportTpl" title="Save checked lines (or all) as a .boqt template">Export template…</button>
+    <button id="btnImportTpl" title="Add entries from a .boqt template">Import template…</button>
+    <button id="btnExportTpl" title="Save checked entries (or all) as a .boqt template">Export template…</button>
   </div>
   <div class="sep sheet-only"></div>
   <div class="group sheet-only">
@@ -86,7 +86,7 @@
     </tfoot>
   </table>
   <div class="empty" id="empty" hidden>
-    <p><b>No lines yet.</b></p>
+    <p><b>No entries yet.</b></p>
     <p>Click <b>+ Row</b> to start measuring, or <b>Import template…</b> to bring in a standard BOQ.</p>
   </div>
 </main>
@@ -99,11 +99,11 @@
         <option value="poItem">PO Item</option>
         <option value="poItem>asset">PO Item › Asset</option>
         <option value="asset>poItem">Asset › PO Item</option>
-        <option value="">No grouping (abstract of all lines)</option>
+        <option value="">No grouping (abstract of all entries)</option>
       </select>
     </label>
     <label class="field"><input type="checkbox" id="repHideZero" checked> Hide items that net to zero</label>
-    <label class="field"><input type="checkbox" id="repDetail"> Show measurement lines</label>
+    <label class="field"><input type="checkbox" id="repDetail"> Show measurement entries</label>
     <span class="spacer"></span>
     <button id="repCsv" title="Download this report as a CSV file for Excel">Export CSV</button>
     <button id="repPrint">Print</button>
@@ -111,13 +111,13 @@
   <div class="rep-wrap">
     <div class="rep-title" id="repTitle"></div>
     <table id="repTable"></table>
-    <div class="empty" id="repEmpty" hidden><p>No lines with a Service No to report.</p></div>
+    <div class="empty" id="repEmpty" hidden><p>No entries with a Service No to report.</p></div>
   </div>
 </section>
 
 <footer>
-  <span><b id="stLines">0</b> lines</span>
-  <span class="warn" id="stFlagsWrap"><b id="stFlags">0</b> <span id="stFlagsLabel">lines need review</span></span>
+  <span><b id="stLines">0</b> <span id="stLinesLabel">entries</span></span>
+  <span class="warn" id="stFlagsWrap"><b id="stFlags">0</b> <span id="stFlagsLabel">entries need review</span></span>
   <span class="datainfo" id="stData"></span>
   <span id="stSaved"></span>
   <span class="spacer"></span>
@@ -245,7 +245,7 @@
           <label><input type="checkbox" id="xSheet" checked> Measurement sheet</label>
           <label><input type="checkbox" id="xReport" checked> Report, grouped by <select id="xGroup"></select></label>
           <label class="sub"><input type="checkbox" id="xHideZero" checked> Hide items that net to zero</label>
-          <label class="sub"><input type="checkbox" id="xDetail"> Show measurement lines under each item</label>
+          <label class="sub"><input type="checkbox" id="xDetail"> Show measurement entries under each item</label>
         </div>
       </div>
       <p class="note">Excel keeps working formulas (Qty, Amount and any arithmetic in No / L / B / H/D). The HTML page is static — no scripts.</p>

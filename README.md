@@ -28,7 +28,7 @@ and turn them into a BOQ — offline, in the browser, with nothing to install.
 ## Overview
 
 MBook replaces the Excel workbooks used to record site measurements and price
-them against a **Schedule of Rates (SOR)**. Enter dimensions line by line, and
+them against a **Schedule of Rates (SOR)**. Enter dimensions entry by entry, and
 MBook looks up each item's description, unit and rate, works out quantities and
 amounts, consolidates them into a BOQ, and exports the result to **PDF**,
 **Excel** or **HTML**.
@@ -40,12 +40,12 @@ connection and no third-party libraries. Your data never leaves your computer.
 
 | Feature | What it does |
 |---|---|
-| **Measurement sheet** | No × L × B × H/D for every line, with arithmetic in any cell — `2*(1.1+1)`, `sqrt(3^2+4^2)`, `pi*0.6^2` |
+| **Measurement sheet** | No × L × B × H/D for every entry, with arithmetic in any cell — `2*(1.1+1)`, `sqrt(3^2+4^2)`, `pi*0.6^2` |
 | **SOR lookup** | Type a service code or search descriptions by keyword. Hover a code for its rate and full scope of work |
-| **Rates by date and State** | Keep several SOR periods and State SORs side by side; each line takes the rate valid for the chosen date and State |
+| **Rates by date and State** | Keep several SOR periods and State SORs side by side; each entry takes the rate valid for the chosen date and State |
 | **Steel weights** | Type a section such as `ISA 65` and pick its kg/m from the BIS tables |
 | **Rounding by unit** | Whole numbers for EA / NO / LS, 2 decimals for lengths and areas, 3 for volumes and weights; amounts to 2 |
-| **Templates** | Save and reuse standard BOQs; lines that no longer match the SOR are flagged for review |
+| **Templates** | Save and reuse standard BOQs; entries that no longer match the SOR are flagged for review |
 | **Reports** | Quantities consolidated by Asset and/or PO Item, with subtotals and a grand total |
 | **Export** | PDF, Excel with live formulas, and plain HTML |
 | **Drawings** | Drawing numbers in the SOR text open the matching drawing file |
@@ -84,7 +84,7 @@ When you're ready, [load your own SOR](#using-your-own-sor).
 | <kbd>Tab</kbd> | Next cell; from *Asset* it goes to the next row's *Service No*, adding a row at the end |
 | <kbd>Ctrl</kbd> + <kbd>D</kbd> | Copy the cell above into this one, as in Excel (a Service No brings its description, unit and rate) |
 | <kbd>Esc</kbd> | Cancel a search and restore the cell |
-| <kbd>Ctrl</kbd> + <kbd>I</kbd> | Show the full SOR text for the current line |
+| <kbd>Ctrl</kbd> + <kbd>I</kbd> | Show the full SOR text for the current entry |
 | <kbd>Delete</kbd> | Delete the selected row(s) |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | Bring back deleted rows |
 | <kbd>Ctrl</kbd> + <kbd>S</kbd> | Save the project |
@@ -93,18 +93,18 @@ When you're ready, [load your own SOR](#using-your-own-sor).
 
 - **Rates as on** — for each item, the rate whose validity period covers this
   date is used. Leave it blank to use the rate valid today; if your SOR has
-  expired, the latest rate on file is used and the line is flagged so you can
+  expired, the latest rate on file is used and the entry is flagged so you can
   set the date of the work.
-- **State** — appears once your SOR contains State-specific rates. Each line
+- **State** — appears once your SOR contains State-specific rates. Each entry
   then uses that State's rate, falling back to rates that apply in every State.
 
-Lines without a valid rate are flagged in red.
+Entries without a valid rate are flagged in red.
 
 ### Report
 
 The **Report** tab totals each service code by Asset, by PO Item, or by both,
 with subtotals and a grand total. It can hide items that net to zero and list
-the measurement lines behind each total. Print it, or export it as CSV.
+the measurement entries behind each total. Print it, or export it as CSV.
 
 ### Export
 
@@ -170,15 +170,15 @@ or changes the file type.
 
 | Extension | Contents |
 |---|---|
-| `.boq` | A project — measurement lines plus project name, State, rate date and discount |
-| `.boqt` | A template — a reusable set of lines. On import, MBook asks for the PO Item and Asset and takes descriptions, units and rates from the current SOR |
+| `.boq` | A project — measurement entries plus project name, State, rate date and discount |
+| `.boqt` | A template — a reusable set of entries. On import, MBook asks for the PO Item and Asset and takes descriptions, units and rates from the current SOR |
 
 <details>
 <summary><b>Template example</b></summary>
 
 <br>
 
-Both formats are plain JSON. A template line looks like:
+Both formats are plain JSON. A template entry looks like:
 
 ```json
 { "serviceNo": "9900003", "shortText": "FOUNDN . RCC 1:1.5:3 MIX",

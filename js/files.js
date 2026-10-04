@@ -133,13 +133,13 @@ $('btnImportTpl').onclick = async () => {
   } catch (err) { return alert(`Could not read ${file.name}: ${err.message}`); }
   pendingTpl = { data, file: file.name };
   const name = data.name || file.name.replace(/\.[^.]+$/, '');
-  $('tplName').textContent = `${name} · ${data.lines.length} lines`;
+  $('tplName').textContent = `${name} · ${data.lines.length} ${data.lines.length === 1 ? 'entry' : 'entries'}`;
   $('tplPo').value = '';
   $('tplAsset').value = name;
   $('tplWhere').value = currentId != null ? 'after' : 'end';
   const unknown = data.lines.filter(l => l.serviceNo && !sorMap.has(asStr(l.serviceNo).trim())).length;
   $('tplNote').textContent = 'Short Text, Unit and Price come from the current SOR, and Qty is recalculated from No × L × B × H/D. ' +
-    'Lines where the template disagrees are flagged for review.' + (unknown ? ` ${unknown} service no(s) are not in the SOR.` : '');
+    'Entries where the template disagrees are flagged for review.' + (unknown ? ` ${unknown} service no(s) are not in the SOR.` : '');
   $('dlgTpl').returnValue = '';
   $('dlgTpl').showModal();
 };
@@ -161,7 +161,7 @@ $('dlgTpl').addEventListener('close', () => {
   addRows(at, lines);
   pendingTpl = null;
   const flagged = lines.filter(l => flagsFor(l, compute(l)).length).length;
-  toast(`Imported ${lines.length} lines from ${tplName}` + (flagged ? ` · ${flagged} line${flagged > 1 ? 's need' : ' needs'} review` : ''));
+  toast(`Imported ${lines.length} ${lines.length === 1 ? 'entry' : 'entries'} from ${tplName}` + (flagged ? ` · ${flagged} ${flagged > 1 ? 'entries need' : 'entry needs'} review` : ''));
   rowEl(lines[0]?.id)?.scrollIntoView({ block: 'center' });
 });
 
@@ -171,7 +171,7 @@ $('btnExportTpl').onclick = () => {
   if (!exportIds.length) return toast('Nothing to export');
   const first = lineById(exportIds[0]);
   $('tplOutName').value = first?.asset || '';
-  $('tplOutNote').textContent = `${exportIds.length} line${exportIds.length > 1 ? 's' : ''} (${checked.size ? 'checked rows' : 'all rows — check rows to export only some'}). ` +
+  $('tplOutNote').textContent = `${exportIds.length} ${exportIds.length > 1 ? 'entries' : 'entry'} (${checked.size ? 'checked entries' : 'all entries — check entries to export only some'}). ` +
     'PO Item and Asset are not stored in templates.';
   $('dlgTplOut').returnValue = '';
   $('dlgTplOut').showModal();
