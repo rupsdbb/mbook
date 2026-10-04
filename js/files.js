@@ -161,7 +161,7 @@ $('dlgTpl').addEventListener('close', () => {
   addRows(at, lines);
   pendingTpl = null;
   const flagged = lines.filter(l => flagsFor(l, compute(l)).length).length;
-  toast(`Imported ${lines.length} lines from ${tplName}` + (flagged ? ` · ${flagged} need review` : ''));
+  toast(`Imported ${lines.length} lines from ${tplName}` + (flagged ? ` · ${flagged} line${flagged > 1 ? 's need' : ' needs'} review` : ''));
   rowEl(lines[0]?.id)?.scrollIntoView({ block: 'center' });
 });
 
