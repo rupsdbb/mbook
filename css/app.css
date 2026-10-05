@@ -344,6 +344,9 @@ body.phone #stFlagsWrap { cursor: pointer; }
    fields and the dialogs' (the sheet's boxes are set below; the report is
    left as it is) */
 body.phone dialog input:not([type="checkbox"]):not([type="radio"]), body.phone dialog select { font-size: 16px; }
+/* keyboard hints (arrows, Enter, double-click) mean nothing on a phone,
+   where a tap on a match chooses it */
+body.phone #dlgService .hint, body.phone #dlgBis .hint { display: none; }
 body.phone #toast { bottom: 44px; max-width: calc(100vw - 24px); white-space: pre-line; }
 
 /* each entry in two lines:
@@ -407,6 +410,30 @@ body.phone #grid tfoot td { position: static; }
 body.phone #grid tfoot td:last-child { display: none; }
 body.phone #grid tfoot td:first-child { text-align: left !important; }
 body.phone #grid tfoot { position: sticky; bottom: 0; z-index: 2; }
+
+/* the report on a phone: the same table, tighter, without the Price column
+   (Amount is Qty × Price; Price is in the exports). Price shrinks to nothing
+   rather than being removed, so the total rows that span the columns stay
+   aligned. Screen only: a report printed from a phone is complete */
+@media screen {
+  body.phone .rep-wrap { padding: 6px; }
+  body.phone #repTable { font-size: 12px; }
+  body.phone #repTable th, body.phone #repTable td { padding: 4px; }
+  body.phone #repTable th { font-size: 11.5px; white-space: normal; }
+  /* SAP short texts can run words together ("ADDPOINTMANHOLE") */
+  body.phone #repTable tbody tr:not([class]) > :nth-child(3), body.phone #repTable tr.d td.dd { overflow-wrap: anywhere; }
+  body.phone #repTable tr.gt td { font-size: 13px; }
+  body.phone #repTable tr.g td { padding-top: 6px; }
+  body.phone #repTable tr.g1 td { padding-left: 14px; }
+  body.phone #repTable tr.d td.dd { padding-left: 12px; }
+  body.phone #repTable tr > :nth-child(6) { width: 0; max-width: 0; padding: 0; border: 0; font-size: 0; overflow: hidden; }
+}
+@media screen and (max-width: 350px) {
+  body.phone #repTable { font-size: 11px; }
+  body.phone #repTable th { font-size: 10.5px; }
+  body.phone #repTable th, body.phone #repTable td { padding: 3px; }
+  body.phone #repTable tr.gt td { font-size: 12px; }
+}
 
 /* a phone turned sideways: a message over everything, dialogs included,
    until it is turned upright again (js/mobile.js sets body.turn) */

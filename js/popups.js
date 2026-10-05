@@ -57,6 +57,10 @@ function makePicker({ dlg, search, list, count, ok, filter, row, onPick, onCance
     const tr = e.target.closest('tr[data-i]');
     if (!tr) return;
     sel = Number(tr.dataset.i);
+    // On a phone a tap chooses, as in any phone list, and leaves the search
+    // box alone: focusing it would bring back the keyboard put away to see
+    // the list. On a computer a click highlights and typing carries on.
+    if (document.body.classList.contains('phone')) return pick();
     list.querySelectorAll('tr.sel').forEach(t => t.classList.remove('sel'));
     tr.classList.add('sel');
     search.focus();
