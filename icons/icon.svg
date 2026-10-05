@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- MBook app icon: the initials on the app's blue; the letters stay inside
+       the middle 60% so Android can crop it to any shape -->
+  <rect width="512" height="512" fill="#1f6feb" stroke="none"/>
+  <text x="256" y="312" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="160" fill="#ffffff" stroke="none">MB</text>
+</svg>

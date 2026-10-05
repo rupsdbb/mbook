@@ -96,6 +96,8 @@ def main():
              f"sor: '{'own SOR' if has_sor else 'sample SOR'}' }};</script>\n")
     html = html.replace("<script>", stamp + "<script>", 1)
     html = re.sub(r"<!-- SOR, in order of preference:.*?-->\n", "", html, flags=re.S)
+    # a file opened from disk can't be installed as an app: no manifest
+    html = re.sub(r"<!-- Installed on Android.*?-->\n<link rel=\"manifest\"[^>]*>\n", "", html, flags=re.S)
 
     os.makedirs(DIST, exist_ok=True)
     out = os.path.join(DIST, NAME + ".html")

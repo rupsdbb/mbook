@@ -18,7 +18,8 @@ function toast(msg, action) {
   t.classList.toggle('has-action', !!action);
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), action ? 8000 : 2600);
+  // long messages stay up long enough to read
+  toastTimer = setTimeout(() => t.classList.remove('show'), action ? 8000 : Math.max(2600, String(msg).length * 45));
 }
 window.addEventListener('pagehide', () => { if (saveTimer) { clearTimeout(saveTimer); autosave(); } });
 window.addEventListener('beforeunload', e => {

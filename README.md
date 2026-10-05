@@ -53,6 +53,7 @@ connection and no third-party libraries. Your data never leaves your computer.
 | **Reports** | Quantities consolidated by Asset and/or PO Item, with subtotals and a grand total |
 | **Export** | PDF, Excel with live formulas, and plain HTML |
 | **Drawings** | Drawing numbers in the SOR text open the matching drawing file |
+| **Works on phones** | Used upright: a compact layout with a menu, and each entry in two lines (Service No and Short Text, then No, L, B, H/D and Qty). On Android, Add to Home screen makes it an app that stays upright |
 | **Safe by default** | Autosave in the browser, project files you can save and open, undo for deleted rows |
 
 ## Quick start

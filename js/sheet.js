@@ -10,8 +10,11 @@ const tbody = $('rows');
 let currentId = null;
 const checked = new Set();
 
+// The placeholder names the field; it shows only on a phone, where the
+// entries have no column headings
+const CELL_LABEL = { code: 'Service No', desc: 'Description', no: 'No', l: 'L', b: 'B', hd: 'H/D', poItem: 'PO Item', asset: 'Asset' };
 function cellInput(field) {
-  return `<input class="cell" data-f="${field}" autocomplete="off" spellcheck="false">`;
+  return `<input class="cell" data-f="${field}" placeholder="${CELL_LABEL[field]}" autocomplete="off" spellcheck="false">`;
 }
 
 function renderAll() {
@@ -87,6 +90,7 @@ function updateRow(tr, line, idx) {
   sp.classList.toggle('missing', !!line.code && !c.info);
   cells[10].textContent = line.code || c.qty ? fmtQty(c.qty, c.uf) : '';
   cells[11].textContent = c.info ? c.info.unit : (line.ref?.unit || '');
+  cells[10].dataset.unit = cells[11].textContent; // shown beside Qty on a phone
   cells[12].textContent = c.sor ? fmtMoney(c.price) : (c.look ? '—' : '');
   cells[12].title = c.look && !c.sor ? `No SOR rate ${rateContext()}` : (c.sor?.states.length ? `${c.sor.states.join('/')} SOR` : '');
   cells[13].textContent = c.sor ? fmtMoney(c.amount) : '';
@@ -300,9 +304,10 @@ tbody.addEventListener('keydown', e => {
     if (f === 'poItem' || f === 'asset') refreshLists();
     return;
   }
-  // Tab from the last field (Asset) goes to the next row's Service No,
-  // adding a row first when this is the last one
-  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && f === 'asset') {
+  // Tab from the last field (Asset; H/D on a phone, where Asset isn't shown)
+  // goes to the next row's Service No, adding a row first when this is the last one
+  const lastField = document.body.classList.contains('phone') ? 'hd' : 'asset';
+  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && f === lastField) {
     e.preventDefault();
     commitCell(inp, true);
     if (idx === project.lines.length - 1) {

@@ -6,6 +6,18 @@
 // **bold** and `code` are understood.
 window.CHANGELOG = [
   {
+    "version": "1.2.0",
+    "date": "2026-10-05",
+    "title": "Phone layout",
+    "items": [
+      "**Phone screens** — a thin band at the top with the tabs, **+** to add a row and **☰** for everything else. The menu groups the project details, file, import and template, entry and data options, and the version and data in use. The bottom band shows just the entry counts; tap the review count to see why entries need review.",
+      "**Entries in two lines** — on a phone, each entry shows Service No and Short Text, with No, L, B, H/D and Qty below, in light grid lines. There are no column headings: an empty box shows the name of its field. Tap the entry's number for its Description, PO Item and Asset, and its price and amount. The report keeps its usual layout.",
+      "**Upright only** — MBook on a phone is used upright. Turned sideways, it asks you to turn the phone back. Added to the home screen on Android (Chrome ⋮ ▸ Add to Home screen), it opens as an app that stays upright.",
+      "The hover card and dialogs fit narrow screens. The layout on larger screens is unchanged.",
+      "Longer messages stay on screen long enough to read."
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-10-04",
     "title": "Import from Excel",

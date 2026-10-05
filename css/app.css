@@ -15,7 +15,7 @@
   --err: #c62828;
   --err-soft: #fde7e7;
   --ok: #2e7d32;
-  --row-alt: #fafbfc;
+  --row-alt: #fafbfc; --grid-line: #e6e9ee;
   --focus-row: #eef4ff;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: light;
@@ -25,14 +25,14 @@
     --bg: #14171c; --surface: #1b1f26; --surface-2: #232832; --border: #313845; --border-strong: #46505f;
     --text: #e3e7ee; --text-2: #9aa4b4; --accent: #5b9dff; --accent-soft: #1f3354;
     --warn: #f0a443; --warn-soft: #3a2a12; --err: #ff6b6b; --err-soft: #3d1c1c; --ok: #6cc070;
-    --row-alt: #1e232b; --focus-row: #1f2a3d; color-scheme: dark;
+    --row-alt: #1e232b; --focus-row: #1f2a3d; --grid-line: #2a303a; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #14171c; --surface: #1b1f26; --surface-2: #232832; --border: #313845; --border-strong: #46505f;
   --text: #e3e7ee; --text-2: #9aa4b4; --accent: #5b9dff; --accent-soft: #1f3354;
   --warn: #f0a443; --warn-soft: #3a2a12; --err: #ff6b6b; --err-soft: #3d1c1c; --ok: #6cc070;
-  --row-alt: #1e232b; --focus-row: #1f2a3d; color-scheme: dark;
+  --row-alt: #1e232b; --focus-row: #1f2a3d; --grid-line: #2a303a; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -123,6 +123,7 @@ td input.cell {
   width: 100%; border: 0; background: transparent; padding: 5px 6px; outline: none;
   border-radius: 0;
 }
+td input.cell::placeholder { color: transparent; }
 td input.cell:focus { background: var(--surface); box-shadow: inset 0 0 0 2px var(--accent); }
 td.expr { position: relative; }
 td.expr::after {
@@ -247,7 +248,7 @@ button.danger:hover { background: var(--err-soft); }
 #toast button:hover { background: rgba(127,127,127,.25); }
 /* SAP-style card shown when hovering a Service No */
 #hoverCard {
-  position: fixed; z-index: 20; width: max-content; min-width: 380px; max-width: min(600px, calc(100vw - 16px));
+  position: fixed; z-index: 20; width: max-content; min-width: min(380px, calc(100vw - 16px)); max-width: min(600px, calc(100vw - 16px));
   background: var(--surface); border: 1px solid var(--border-strong); border-left: 3px solid var(--accent);
   border-radius: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.22); padding: 10px 12px;
   display: none; cursor: pointer; font-size: 12.5px;
@@ -318,10 +319,144 @@ body.view-report .sheet-only { display: none !important; }
   .field { gap: 4px; }
   .brand { gap: 4px; }
 }
-@media (max-width: 700px) {
-  #projName { width: 100%; }
-  header .field:first-of-type { flex: 1 1 100%; }
+
+/* ---------- phone screens ----------
+   up to 760px wide, or a touch screen under 500px tall (a phone held
+   sideways); js/mobile.js sets body.phone and moves the header's fields
+   and buttons into the menu (#dlgMenu); what stays is a thin band on top —
+   name, tabs, + Row, Menu — and the entry counts at the bottom */
+.m-only, #dlgMenu:not([open]) { display: none; }
+body.phone .m-only { display: flex; }
+body.phone .m-actions { margin-left: auto; gap: 6px; }
+body.phone header { padding: 6px 10px; gap: 0; }
+body.phone header .hrow { flex-wrap: nowrap; gap: 6px; }
+body.phone .brand { margin-right: 2px; }
+body.phone .tabs { min-width: 0; }
+body.phone header .hrow + .hrow { display: none; }
+body.phone .brand #appName { font-size: 16px; }
+body.phone .tab { padding: 4px 8px; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; }
+body.phone header button { padding: 5px 9px; }
+body.phone #mMenu { font-size: 17px; line-height: 1; padding: 4px 10px; }
+body.phone footer { padding: 6px 10px; min-height: 0; padding-right: 10px !important; gap: 14px; }
+body.phone footer .keys, body.phone footer .gh { display: none; }
+body.phone #stFlagsWrap { cursor: pointer; }
+/* iPhones zoom in on any text box under 16px when it is tapped: the menu's
+   fields and the dialogs' (the sheet's boxes are set below; the report is
+   left as it is) */
+body.phone dialog input:not([type="checkbox"]):not([type="radio"]), body.phone dialog select { font-size: 16px; }
+body.phone #toast { bottom: 44px; max-width: calc(100vw - 24px); white-space: pre-line; }
+
+/* each entry in two lines:
+     # !  Service No  Short Text ………………
+     No    L    B    H/D    Qty
+   the second line has the full width (a 20-column grid, four each);
+   Description, PO Item and Asset open from the entry's number */
+body.phone #grid, body.phone #grid thead, body.phone #grid tbody, body.phone #grid tfoot { display: block; }
+body.phone #grid { min-width: 0; }
+body.phone #grid thead { display: none; } /* each box names its field instead */
+body.phone #grid tr {
+  display: grid; grid-template-columns: repeat(20, minmax(0, 1fr));
+  grid-template-areas:
+    "line line code code code code code short short short short short short short short short short short short short"
+    "no no no no l l l l b b b b hd hd hd hd qty qty qty qty";
+  align-items: center;
 }
+body.phone #grid th, body.phone #grid td { width: auto; }
+body.phone #grid tbody tr { background: var(--surface); border-bottom: 1px solid var(--border-strong); }
+body.phone #grid tbody tr:nth-child(even) { background: var(--row-alt); }
+body.phone #grid tbody tr.current { background: var(--focus-row); }
+/* rows checked in the full layout (a window narrowed afterwards) stay
+   marked, as Delete and Duplicate act on them */
+body.phone #grid tbody tr.checked { background: var(--accent-soft); }
+/* light grid lines between the boxes; empty ones show their field's name */
+body.phone #grid tbody td {
+  border: 0; border-right: 1px solid var(--grid-line); border-top: 1px solid var(--grid-line);
+  background: transparent; min-width: 0; align-self: stretch;
+}
+body.phone #grid tbody td:is(.c-short, .c-qty) { border-right: 0; }
+body.phone #grid tbody td:is(.c-line, .c-flag, .c-code, .c-short) { border-top: 0; }
+body.phone #grid tbody td.c-flag { border-right: 0; }
+body.phone #grid td input.cell::placeholder { color: var(--text-2); opacity: .45; font-size: 13px; }
+body.phone #grid .c-short .short span:empty::before { content: "Short Text"; color: var(--text-2); opacity: .45; }
+body.phone #grid .c-sel, body.phone #grid .c-desc, body.phone #grid .c-unit, body.phone #grid .c-price,
+body.phone #grid .c-amt, body.phone #grid .c-po, body.phone #grid .c-asset { display: none; }
+body.phone #grid .c-line { grid-area: line; padding-left: 2px; text-align: left; }
+/* the warning sits beside the entry number */
+body.phone #grid .c-flag { grid-area: line; justify-self: end; align-self: start; padding-right: 2px; border: 0; }
+body.phone #grid .c-code { grid-area: code; }
+body.phone #grid .c-short { grid-area: short; }
+body.phone #grid .c-dim:nth-child(7) { grid-area: no; }
+body.phone #grid .c-dim:nth-child(8) { grid-area: l; }
+body.phone #grid .c-dim:nth-child(9) { grid-area: b; }
+body.phone #grid .c-hd { grid-area: hd; }
+/* Qty with its unit below; a long one wraps rather than being cut off */
+body.phone #grid .c-qty {
+  grid-area: qty; align-self: stretch; display: flex; flex-direction: column; justify-content: center;
+  align-items: flex-end; text-align: right; overflow-wrap: anywhere; padding: 3px 4px;
+}
+body.phone #grid tbody .c-qty { font-weight: 600; line-height: 1.2; font-size: 12.5px; letter-spacing: -.3px; }
+body.phone #grid tbody .c-qty::after { content: attr(data-unit); color: var(--text-2); font-size: 10.5px; font-weight: 400; }
+body.phone #grid tbody td.c-line { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* 16px: no zoom on focus. A value too long for its box ends in "…" rather
+   than being silently cut short (the whole of it shows while editing) */
+body.phone #grid td input.cell { padding: 7px 3px; font-size: 16px; text-overflow: ellipsis; }
+body.phone #grid td.num input.cell { letter-spacing: -.4px; }
+body.phone #grid tbody td .tag:empty { display: none; }
+body.phone #grid tfoot tr { grid-template-columns: 1fr auto; grid-template-areas: none; }
+body.phone #grid tfoot td { position: static; }
+body.phone #grid tfoot td:last-child { display: none; }
+body.phone #grid tfoot td:first-child { text-align: left !important; }
+body.phone #grid tfoot { position: sticky; bottom: 0; z-index: 2; }
+
+/* a phone turned sideways: a message over everything, dialogs included,
+   until it is turned upright again (js/mobile.js sets body.turn) */
+#turnPhone { display: none; }
+body.turn #turnPhone {
+  display: flex; position: fixed; inset: 0; z-index: 1000; background: var(--bg); color: var(--text);
+  flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  padding: 24px; text-align: center; font-size: 17px;
+}
+body.turn #turnPhone svg { color: var(--accent); }
+body.turn #turnPhone p { margin: 0; }
+body.turn dialog, body.turn dialog::backdrop, body.turn #hoverCard, body.turn #toast { visibility: hidden; }
+
+/* the menu: a panel that drops down from the top band */
+.msheet {
+  margin: 0; inset: 0 0 auto 0; width: 100%; max-width: 100%; max-height: 88vh;
+  border: 0; border-bottom: 1px solid var(--border-strong); border-radius: 0 0 12px 12px;
+  display: flex; flex-direction: column;
+}
+.msheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--border); font-size: 15px;
+}
+.msheet-head button { border: 0; font-size: 16px; padding: 4px 10px; }
+.msheet-body { overflow: auto; padding: 4px 14px 14px; }
+.msheet section { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.msheet section:last-child { border-bottom: 0; }
+.msheet h3 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--text-2); }
+.msheet button { padding: 8px 12px; min-height: 38px; }
+.msheet .group { flex-wrap: wrap; gap: 6px; }
+.msheet .group button { flex: 1 1 auto; }
+.msheet .sep { display: none; }
+#slotProject { display: grid; grid-template-columns: max-content 1fr; gap: 8px 12px; align-items: center; }
+#slotProject .field { display: contents; }
+#slotProject .field input, #slotProject .field select { width: 100%; height: 36px; }
+/* the Data menu is listed in full */
+.msheet #btnData { display: none; }
+.msheet .menu-pop { display: block; position: static; box-shadow: none; border: 0; padding: 0; min-width: 0; }
+.msheet .menu-pop button { white-space: normal; min-height: 38px; padding: 8px 4px; border-bottom: 1px solid var(--border); border-radius: 0; }
+.msheet .menu-pop button:last-child { border-bottom: 0; }
+#slotInfo { display: flex; flex-direction: column; gap: 6px; color: var(--text-2); font-size: 12.5px; }
+#slotInfo a { color: var(--accent); }
+@media (max-width: 380px) { body.phone #mAdd span { display: none; } }
+@media (max-width: 350px) {
+  body.phone .brand { display: none; } /* the tabs need the room */
+  body.phone .tab { padding: 4px 6px; font-size: 12px; }
+  body.phone header button { padding: 5px 8px; }
+  body.phone #mMenu { padding: 4px 8px; }
+}
+#slotInfo .ver { align-self: flex-start; font-size: 12px; min-height: 0; padding: 3px 8px; }
 @media print {
   :root, :root[data-theme="dark"], :root:not([data-theme="light"]) {
     --bg: #fff; --surface: #fff; --surface-2: #eee; --border: #ccc; --border-strong: #999;

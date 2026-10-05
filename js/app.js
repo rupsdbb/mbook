@@ -10,7 +10,7 @@
 const APP = {
   name: 'MBook',
   tagline: 'BOQ Measurement',
-  version: '1.1.0',
+  version: '1.2.0',
   author: 'rupsdbb',
   url: 'https://github.com/rupsdbb/mbook',
   // Author's email in two parts (name, domain), joined only when the mail icon

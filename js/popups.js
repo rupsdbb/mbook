@@ -88,7 +88,8 @@ const svcPicker = makePicker({
     line.code = String(it.code);
     refreshRow(line);
     changed();
-    focusCell(line.id, 'desc');
+    // on to Description; on a phone, where it isn't shown, to No
+    focusCell(line.id, document.body.classList.contains('phone') ? 'no' : 'desc');
   },
   // Esc / Cancel puts back what the cell held before the search text was typed
   onCancel() {
